@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sensors & Instrumentation — Mid-Sem Kit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(','\\)']], displayMath: [['\\[','\\]']] },
+  svg: { fontCache: 'global' },
+  startup: { typeset: true }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js" defer></script>
+<style>
+:root{
+  --paper:#EDF5EF; --paper2:#E1EEE5; --card:#F8FCF9; --ink:#0E2A1E; --muted:#4A6656;
+  --pcb:#1C6B44; --leaf:#34A266; --glow:#8FE0AE; --copper:#A9772A; --line:#C9DFD0;
+  --ans:#FFF7E6; --ansline:#E6CC96;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0B1D15; --paper2:#0F261B; --card:#12291F; --ink:#E2F2E7; --muted:#9CBBA8;
+    --pcb:#5CC48A; --leaf:#46B874; --glow:#2E8F58; --copper:#E0B062; --line:#224434;
+    --ans:#2A2414; --ansline:#6B5A2E;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0B1D15; --paper2:#0F261B; --card:#12291F; --ink:#E2F2E7; --muted:#9CBBA8;
+  --pcb:#5CC48A; --leaf:#46B874; --glow:#2E8F58; --copper:#E0B062; --line:#224434;
+  --ans:#2A2414; --ansline:#6B5A2E;
+}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 70px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:"Bricolage Grotesque","Atkinson Hyperlegible",system-ui,sans-serif;line-height:1.1;margin:0}
+a{color:var(--pcb)}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--leaf);outline-offset:2px;border-radius:6px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+
+/* ---------- hero ---------- */
+.hero{padding:44px 0 26px;position:relative;overflow:hidden}
+.hero-top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:28px;color:var(--muted);font-size:15px}
+.theme-btn{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 14px;cursor:pointer}
+.hero h1{font-size:clamp(40px,7.5vw,84px);font-weight:800;letter-spacing:-0.035em;max-width:13ch;color:var(--ink)}
+.hero h1 span{display:block;color:var(--pcb)}
+.hero p.lede{max-width:56ch;color:var(--muted);font-size:18px;margin:18px 0 0}
+.scope{margin-top:30px;border:1.5px solid var(--line);border-radius:18px;background:var(--card);position:relative;overflow:hidden}
+.scope canvas{display:block;width:100%;height:170px}
+.scope-legend{display:flex;justify-content:space-between;padding:10px 16px;border-top:1px solid var(--line);font-size:14px;color:var(--muted);gap:10px;flex-wrap:wrap}
+.scope-legend b{color:var(--ink)}
+.stats{display:flex;gap:28px;flex-wrap:wrap;margin-top:22px;font-size:15px;color:var(--muted)}
+.stats strong{font-family:"Bricolage Grotesque",sans-serif;font-size:28px;color:var(--pcb);display:block;line-height:1}
+
+/* ---------- nav ---------- */
+nav.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--paper) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.tabrow{display:flex;gap:4px;overflow-x:auto;position:relative;padding:10px 0}
+.tab{border:0;background:none;padding:10px 16px;border-radius:12px;cursor:pointer;font-weight:700;white-space:nowrap;color:var(--muted);position:relative;z-index:1;transition:color .25s}
+.tab[aria-selected="true"]{color:#fff}
+:root[data-theme="dark"] .tab[aria-selected="true"]{color:#06140d}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .tab[aria-selected="true"]{color:#06140d}}
+.tab-pill{position:absolute;top:10px;height:calc(100% - 20px);background:var(--pcb);border-radius:12px;transition:left .35s cubic-bezier(.6,.05,.3,1),width .35s cubic-bezier(.6,.05,.3,1);z-index:0}
+
+/* ---------- panels ---------- */
+section.panel{display:none;padding:34px 0 80px}
+section.panel.show{display:block;animation:rise .45s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.panel-head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-bottom:22px}
+.panel-head h2{font-size:clamp(30px,4.5vw,46px);letter-spacing:-0.02em}
+.panel-head p{margin:8px 0 0;color:var(--muted);max-width:60ch}
+
+/* formulas */
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.chip{border:1.5px solid var(--line);background:var(--card);padding:6px 14px;border-radius:999px;cursor:pointer;font-size:15px;transition:background .2s,border-color .2s}
+.chip[aria-pressed="true"]{background:var(--pcb);border-color:var(--pcb);color:var(--paper)}
+.search{width:100%;max-width:340px;padding:10px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font:inherit}
+.fgroup{margin-top:26px}
+.fgroup h3{font-size:22px;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.fgroup h3::before{content:"";width:14px;height:14px;border-radius:4px;background:var(--leaf);box-shadow:0 0 0 4px color-mix(in srgb,var(--leaf) 25%,transparent)}
+.ftable{border:1.5px solid var(--line);border-radius:16px;background:var(--card);overflow:hidden}
+.frow{display:grid;grid-template-columns:minmax(150px,1fr) minmax(0,2fr);gap:14px;padding:14px 18px;border-top:1px solid var(--line);align-items:center}
+.frow:first-child{border-top:0}
+.frow .fname{font-weight:700}
+.frow .fname small{display:block;font-weight:400;color:var(--muted);font-size:13px;margin-top:2px}
+.frow .fx{overflow-x:auto}
+.frow .fx .where{color:var(--muted);font-size:14px;margin-top:4px}
+.frow.hide{display:none}
+.fgroup.hide{display:none}
+@media (max-width:640px){.frow{grid-template-columns:1fr;gap:6px}}
+
+/* accordion (derivations + revision) */
+.acc{border:1.5px solid var(--line);border-radius:16px;background:var(--card);margin-bottom:10px;overflow:hidden}
+.acc > button{width:100%;text-align:left;background:none;border:0;padding:16px 18px;display:flex;align-items:center;gap:14px;cursor:pointer}
+.acc > button .t{flex:1;font-weight:700;font-size:17px}
+.acc > button .t small{display:block;font-weight:400;color:var(--muted);font-size:14px}
+.acc .tag{font-size:13px;color:var(--pcb);border:1px solid var(--line);border-radius:8px;padding:2px 8px;white-space:nowrap}
+.acc .chev{width:22px;height:22px;transition:transform .3s;flex:none;color:var(--pcb)}
+.acc.open .chev{transform:rotate(90deg)}
+.acc .body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .35s ease}
+.acc.open .body{grid-template-rows:1fr}
+.acc .body > div{overflow:hidden}
+.acc .inner{padding:4px 22px 20px;border-top:1px dashed var(--line)}
+.steps{counter-reset:s;list-style:none;padding:0;margin:14px 0 0}
+.steps li{counter-increment:s;position:relative;padding:6px 0 10px 40px;overflow-x:auto}
+.steps li::before{content:counter(s);position:absolute;left:0;top:6px;width:26px;height:26px;border-radius:50%;background:var(--paper2);color:var(--pcb);font-weight:700;font-size:14px;display:grid;place-items:center;border:1.5px solid var(--line)}
+.result{margin-top:8px;padding:12px 16px;border-left:4px solid var(--pcb);background:var(--paper2);border-radius:0 12px 12px 0;overflow-x:auto}
+
+/* papers */
+.paperbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+.setbtn{border:1.5px solid var(--line);background:var(--card);padding:10px 18px;border-radius:12px;cursor:pointer;font-weight:700}
+.setbtn[aria-pressed="true"]{background:var(--pcb);color:var(--paper);border-color:var(--pcb)}
+.timer{margin-left:auto;display:flex;align-items:center;gap:10px;border:1.5px solid var(--line);background:var(--card);padding:6px 8px 6px 16px;border-radius:14px}
+.timer .clock{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:22px;font-variant-numeric:tabular-nums;min-width:74px}
+.timer button{border:0;background:var(--paper2);padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+.timer .bar{height:4px;background:var(--line);border-radius:4px;overflow:hidden;width:90px}
+.timer .bar i{display:block;height:100%;width:100%;background:var(--leaf);transform-origin:left;transition:transform 1s linear}
+.timer.done{border-color:var(--copper)}
+@media (max-width:700px){.timer{margin-left:0;width:100%}}
+.paper{border:1.5px solid var(--line);border-radius:20px;background:var(--card);padding:26px 24px}
+.paper-hd{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;padding-bottom:16px;border-bottom:2px solid var(--ink)}
+.paper-hd h3{font-size:26px}
+.paper-hd .meta{color:var(--muted);text-align:right;font-size:15px}
+.paper-hd .meta b{color:var(--ink)}
+.sec-title{margin:24px 0 6px;font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:19px;color:var(--pcb)}
+.sec-note{color:var(--muted);font-size:14px;margin:0 0 8px}
+.q{display:grid;grid-template-columns:36px 1fr auto;gap:10px;padding:14px 0;border-top:1px solid var(--line)}
+.q .qn{font-weight:700;color:var(--pcb)}
+.q .mk{font-weight:700;font-size:14px;color:var(--muted);white-space:nowrap}
+.q .qt{overflow-x:auto}
+.q .or{margin:10px 0;font-weight:700;color:var(--copper)}
+.solbtn{margin-top:8px;border:1.5px solid var(--line);background:none;padding:5px 12px;border-radius:9px;cursor:pointer;font-size:14px;font-weight:700;color:var(--pcb)}
+.sol{display:grid;grid-template-rows:0fr;transition:grid-template-rows .35s ease}
+.sol.open{grid-template-rows:1fr}
+.sol > div{overflow:hidden}
+.sol .in{margin-top:10px;padding:12px 16px;background:var(--ans);border:1px solid var(--ansline);border-radius:12px;overflow-x:auto}
+.sol .in .fin{font-weight:700;color:var(--copper)}
+.paperset{display:none}
+.paperset.show{display:block;animation:rise .4s ease both}
+
+/* revision */
+.progress{display:flex;align-items:center;gap:14px;min-width:240px}
+.progress .track{flex:1;height:10px;background:var(--line);border-radius:10px;overflow:hidden}
+.progress .track i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--pcb),var(--leaf));transition:width .5s ease}
+.progress span{font-weight:700;font-variant-numeric:tabular-nums}
+.acc .done-box{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:15px;color:var(--muted);cursor:pointer}
+.acc .done-box input{width:18px;height:18px;accent-color:var(--pcb)}
+.acc.revised > button .t::after{content:"Revised";margin-left:10px;font-size:12px;font-weight:700;color:var(--paper);background:var(--leaf);padding:2px 8px;border-radius:6px;vertical-align:middle}
+.inner ul{padding-left:20px;margin:12px 0}
+.inner li{margin:4px 0}
+.keyf{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.keyf span{background:var(--paper2);border:1px solid var(--line);border-radius:10px;padding:6px 10px;overflow-x:auto;max-width:100%}
+.tip{margin-top:12px;font-size:15px;color:var(--muted)}
+.tip b{color:var(--copper)}
+
+footer{border-top:1px solid var(--line);padding:26px 0 40px;color:var(--muted);font-size:14px}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+mjx-container{max-width:100%}
+mjx-container[display="true"]{margin:.4em 0!important;overflow-x:auto;overflow-y:hidden}
+
+/* ---------- intro splash ---------- */
+#introSplash{position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;background:var(--paper);cursor:pointer;transition:opacity .5s ease,visibility .5s ease}
+#introSplash.hide{opacity:0;visibility:hidden;pointer-events:none}
+.intro-card{display:flex;flex-direction:column;align-items:center;gap:14px;animation:introPop .5s cubic-bezier(.3,.8,.4,1) both}
+.intro-heart{animation:introBeat 1.1s ease-in-out infinite}
+.intro-card p{font-family:"Bricolage Grotesque",sans-serif;font-size:1.2rem;color:var(--ink);margin:0;letter-spacing:-0.01em;text-align:center}
+.intro-card p strong{color:var(--pcb)}
+@keyframes introPop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
+@keyframes introBeat{0%,100%{transform:scale(1)}25%{transform:scale(1.15)}40%{transform:scale(1)}60%{transform:scale(1.08)}}
+@media (prefers-reduced-motion: reduce){#introSplash{transition:opacity .01s linear}.intro-card{animation:none}.intro-heart{animation:none}}
+</style>
+</head>
+<body>
+
+<div id="introSplash" role="status" aria-label="Made by Shivam Yadav">
+  <div class="intro-card">
+    <svg class="intro-heart" width="42" height="38" viewBox="0 0 32 29" aria-hidden="true"><path d="M23.6 0c-3.4 0-6.3 2-7.6 4.9C14.7 2 11.8 0 8.4 0 3.8 0 0 3.8 0 8.4c0 9.4 9.5 13.9 16 20.1 6.5-6.2 16-10.7 16-20.1C32 3.8 28.2 0 23.6 0z" fill="#E0483F"/></svg>
+    <p>Made by <strong>Shivam Yadav</strong></p>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-top">
+      <span>Sensors &amp; Instrumentation · IIIT Surat · L-1 to L-21</span>
+      <button class="theme-btn" id="themeBtn" type="button">Toggle theme</button>
+    </div>
+    <h1>Noisy notes in, <span>clean marks out.</span></h1>
+    <p class="lede">Every formula, derivation and slide summary from your lectures, plus three full 25-mark practice papers, and 25 theory questions with model answers. Built for one focused night.</p>
+
+    <div class="scope" aria-hidden="true">
+      <canvas id="scope"></canvas>
+      <div class="scope-legend"><span><b>Sensor output</b> raw, noisy</span><span><b>Signal conditioning</b> amplify, filter</span><span><b>Conditioned signal</b> ready for the ADC</span></div>
+    </div>
+
+    <div class="stats">
+      <div><strong>60+</strong>formulas</div>
+      <div><strong>16</strong>derivations</div>
+      <div><strong>3</strong>papers × 25 marks</div>
+      <div><strong>25</strong>theory questions</div>
+      <div><strong>18</strong>lecture summaries</div>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs" aria-label="Sections">
+  <div class="wrap">
+    <div class="tabrow" role="tablist" id="tablist">
+      <span class="tab-pill" id="pill"></span>
+      <button class="tab" role="tab" aria-selected="true" data-panel="formulas">Formula sheet</button>
+      <button class="tab" role="tab" aria-selected="false" data-panel="derivations">Derivations</button>
+      <button class="tab" role="tab" aria-selected="false" data-panel="papers">Practice papers</button>
+      <button class="tab" role="tab" aria-selected="false" data-panel="theory">Theoretical questions</button>
+      <button class="tab" role="tab" aria-selected="false" data-panel="revision">Revision</button>
+    </div>
+  </div>
+</nav>
+
+<main class="wrap">
+
+<!-- ======================= FORMULAS ======================= -->
+<section class="panel show" id="formulas" role="tabpanel">
+  <div class="panel-head">
+    <div>
+      <h2>Formula sheet</h2>
+      <p>Grouped by topic, with the lecture each one comes from. Filter by topic or type a keyword like “Bernoulli” or “thermistor”.</p>
+    </div>
+    <input class="search" id="fsearch" type="search" placeholder="Search formulas" aria-label="Search formulas">
+  </div>
+  <div class="filters" id="chips">
+    <button class="chip" aria-pressed="true" data-f="all">All</button>
+    <button class="chip" aria-pressed="false" data-f="err">Errors</button>
+    <button class="chip" aria-pressed="false" data-f="res">Resistive &amp; bridge</button>
+    <button class="chip" aria-pressed="false" data-f="pres">Pressure</button>
+    <button class="chip" aria-pressed="false" data-f="lev">Level</button>
+    <button class="chip" aria-pressed="false" data-f="flow">Flow</button>
+    <button class="chip" aria-pressed="false" data-f="temp">Temperature</button>
+    <button class="chip" aria-pressed="false" data-f="mot">Motion</button>
+    <button class="chip" aria-pressed="false" data-f="light">Light</button>
+    <button class="chip" aria-pressed="false" data-f="mag">Magnetic</button>
+  </div>
+
+  <div class="fgroup" data-g="err"><h3>Measurement error &amp; characteristics</h3><div class="ftable">
+    <div class="frow"><div class="fname">Absolute error<small>L-1, L-2</small></div><div class="fx">\(E_a = A_m - A_t\) &nbsp;&nbsp; Correction \(= -E_a = A_t - A_m\)<div class="where">A<sub>m</sub> measured value, A<sub>t</sub> true value</div></div></div>
+    <div class="frow"><div class="fname">Relative &amp; % error<small>L-1, L-2</small></div><div class="fx">\(E_r = \dfrac{E_a}{A_t}, \qquad \%E_r = \dfrac{E_a}{A_t}\times 100\)</div></div>
+    <div class="frow"><div class="fname">Accuracy<small>L-1, L-2</small></div><div class="fx">\(a = 100\% - |\%E_r|\)</div></div>
+    <div class="frow"><div class="fname">Sensitivity<small>L-2, L-5</small></div><div class="fx">\(S = \dfrac{\Delta \text{Output}}{\Delta \text{Input}} = \dfrac{dS}{dX}\)<div class="where">Slope of the calibration curve</div></div></div>
+    <div class="frow"><div class="fname">Tangent galvanometer<small>L-4 absolute instrument</small></div><div class="fx">\(I = K\tan\theta\)<div class="where">K galvanometer constant, θ deflection</div></div></div>
+  </div></div>
+
+  <div class="fgroup" data-g="res"><h3>Resistive sensors, bridge &amp; potentiometer</h3><div class="ftable">
+    <div class="frow"><div class="fname">Resistance of a conductor<small>L-8</small></div><div class="fx">\(R = \dfrac{\rho L}{A}\)<div class="where">ρ resistivity, L length, A cross-section area</div></div></div>
+    <div class="frow"><div class="fname">Strain gauge<small>L-8, L-20</small></div><div class="fx">\(\dfrac{\Delta R}{R} = G\,\varepsilon\)<div class="where">G gauge factor, ε strain</div></div></div>
+    <div class="frow"><div class="fname">Wheatstone balance<small>L-8</small></div><div class="fx">\(\dfrac{P}{Q} = \dfrac{R}{S} \;\Rightarrow\; R = S\,\dfrac{P}{Q}\)</div></div>
+    <div class="frow"><div class="fname">Unbalanced bridge (Thevenin)<small>L-8 Problem 2</small></div><div class="fx">\(V_{th} = E\left[\dfrac{Q}{P+Q} - \dfrac{S}{R+S}\right],\; R_{th} = \dfrac{PQ}{P+Q} + \dfrac{RS}{R+S},\; I_g = \dfrac{V_{th}}{R_{th}+R_g}\)</div></div>
+    <div class="frow"><div class="fname">Linear potentiometer<small>L-8</small></div><div class="fx">\(v_o = v_{ref}\,\dfrac{x}{L}\)</div></div>
+    <div class="frow"><div class="fname">Rotary potentiometer<small>L-8</small></div><div class="fx">\(v_o = v_{ref}\,\dfrac{\theta}{\theta_{max}}\)</div></div>
+    <div class="frow"><div class="fname">n-bit ADC reading<small>L-8 Problem 3</small></div><div class="fx">\(\text{Count} = \dfrac{V_{in}}{V_{ref}}\,(2^n - 1)\)<div class="where">10-bit → 0 to 1023</div></div></div>
+  </div></div>
+
+  <div class="fgroup" data-g="pres"><h3>Pressure</h3><div class="ftable">
+    <div class="frow"><div class="fname">Pressure<small>L-9</small></div><div class="fx">\(P = \dfrac{F}{A}\) &nbsp;&nbsp; 1 bar = 10<sup>5</sup> Pa, 1 psi ≈ 6.90 kPa, 1 atm ≈ 101.3 kPa = 14.7 psi</div></div>
+    <div class="frow"><div class="fname">Hydrostatic pressure<small>L-9</small></div><div class="fx">\(p = \gamma h = \rho g h\)<div class="where">γ specific weight (N/m³), independent of container shape</div></div></div>
+    <div class="frow"><div class="fname">Gauge vs absolute<small>L-9</small></div><div class="fx">\(P_g = P_{abs} - P_{atm}, \qquad P_{abs} = P_g + P_{atm}\)</div></div>
+    <div class="frow"><div class="fname">Specific gravity<small>L-9</small></div><div class="fx">\(SG = \dfrac{\rho}{\rho_{water}} = \dfrac{\gamma}{\gamma_{water}}\)<div class="where">γ<sub>water</sub> ≈ 9.8 kN/m³, dimensionless</div></div></div>
+    <div class="frow"><div class="fname">Manometer<small>L-10</small></div><div class="fx">\(P_R - P_L = \gamma h\)</div></div>
+    <div class="frow"><div class="fname">Diaphragm<small>L-10</small></div><div class="fx">\(\Delta P = P_{app} - P_{ref}, \quad F = \Delta P\cdot A\)<div class="where">Gauge: ΔP = P − P<sub>atm</sub>; absolute: ΔP = P; differential: ΔP = P<sub>1</sub> − P<sub>2</sub></div></div></div>
+    <div class="frow"><div class="fname">Capacitive pickup<small>L-10, L-20</small></div><div class="fx">\(C = \dfrac{\varepsilon A}{d}\)</div></div>
+  </div></div>
+
+  <div class="fgroup" data-g="lev"><h3>Level</h3><div class="ftable">
+    <div class="frow"><div class="fname">Volume from level<small>L-11</small></div><div class="fx">\(V = A\times h\)</div></div>
+    <div class="frow"><div class="fname">Level from pressure<small>L-11 indirect</small></div><div class="fx">\(h = \dfrac{P}{\rho g} = \dfrac{P}{\gamma}\)</div></div>
+    <div class="frow"><div class="fname">Time of flight (ultrasonic / radar / laser / TDR)<small>L-11, L-12</small></div><div class="fx">\(d = \dfrac{v\,t}{2}, \qquad h = H - d\)<div class="where">t is round-trip time; v = 343 m/s (sound in air) or 3×10⁸ m/s (EM)</div></div></div>
+    <div class="frow"><div class="fname">TDR wave speed<small>L-12</small></div><div class="fx">\(v = \dfrac{c}{\sqrt{\varepsilon_r}}\)</div></div>
+    <div class="frow"><div class="fname">Buoyancy (displacer / float)<small>L-11</small></div><div class="fx">\(F_B = \rho g V_{sub}\)<div class="where">A floating body: F<sub>B</sub> = mg</div></div></div>
+    <div class="frow"><div class="fname">Capacitive probe<small>L-12</small></div><div class="fx">\(C_d = C_a\,\varepsilon_r\,\dfrac{d}{r} + C_a \;\Rightarrow\; d = \dfrac{r\,(C_d - C_a)}{\varepsilon_r\,C_a}\)<div class="where">r plate height, C<sub>a</sub> capacitance in air, d immersed depth</div></div></div>
+    <div class="frow"><div class="fname">Capacitive tank (linear)<small>L-12</small></div><div class="fx">\(\dfrac{h}{H} = \dfrac{C - C_{min}}{C_{max} - C_{min}}\)</div></div>
+  </div></div>
+
+  <div class="fgroup" data-g="flow"><h3>Flow</h3><div class="ftable">
+    <div class="frow"><div class="fname">Flow rate, total flow, mass flow<small>L-13, L-15</small></div><div class="fx">\(Q = A\,v_{avg} = \dfrac{V}{t}, \quad V = \int Q\,dt, \quad F = \rho Q\)</div></div>
+    <div class="frow"><div class="fname">Continuity<small>L-13</small></div><div class="fx">\(A_1 V_1 = A_2 V_2 \;\Rightarrow\; V_2 = V_1\left(\dfrac{D_1}{D_2}\right)^2\)</div></div>
+    <div class="frow"><div class="fname">Reynolds number<small>L-13</small></div><div class="fx">\(R = \dfrac{V D \rho}{\mu}\)<div class="where">R ≤ 2000 laminar · 2000–5000 mixed · R &gt; 5000 turbulent</div></div></div>
+    <div class="frow"><div class="fname">Bernoulli (energy form)<small>L-13</small></div><div class="fx">\(P + \tfrac12 \rho v^2 + \rho g h = \text{constant}\)</div></div>
+    <div class="frow"><div class="fname">Bernoulli (head form)<small>L-13</small></div><div class="fx">\(\dfrac{P_A}{\gamma_A} + \dfrac{V_A^2}{2g} + Z_A = \dfrac{P_B}{\gamma_B} + \dfrac{V_B^2}{2g} + Z_B \;(+h_{L})\)</div></div>
+    <div class="frow"><div class="fname">Torricelli outflow<small>L-13</small></div><div class="fx">\(V_3 = \sqrt{2gh}, \qquad Q = C_D V_3 A_3\)</div></div>
+    <div class="frow"><div class="fname">Friction head loss<small>L-13</small></div><div class="fx">\(h_L = \dfrac{f L V^2}{2 D g}\)</div></div>
+    <div class="frow"><div class="fname">Fitting head loss<small>L-13</small></div><div class="fx">\(h_L = \dfrac{K V^2}{2g}, \quad K_{tot} = \sum n_i K_i\)</div></div>
+    <div class="frow"><div class="fname">Form drag<small>L-13</small></div><div class="fx">\(F = C_D\,\gamma\,\dfrac{A V^2}{2g}\)</div></div>
+    <div class="frow"><div class="fname">Orifice / differential meter<small>L-15</small></div><div class="fx">\(Q = K\left(\dfrac{\pi}{4}\right)\left(\dfrac{d_S}{d_P}\right)^2\sqrt{2gh}\)<div class="where">d<sub>S</sub> orifice dia, d<sub>P</sub> pipe dia, h manometer height difference</div></div></div>
+    <div class="frow"><div class="fname">Elbow meter<small>L-15</small></div><div class="fx">\(\text{Flow} = C\sqrt{R\,P_D\,D^3\,\rho}\)<div class="where">as written on the slide</div></div></div>
+    <div class="frow"><div class="fname">Pitot static tube<small>L-15</small></div><div class="fx">\(Q = K\sqrt{p_S - p_I}\)</div></div>
+    <div class="frow"><div class="fname">Rotameter equilibrium<small>L-15</small></div><div class="fx">\(F_D + F_B = W\)</div></div>
+    <div class="frow"><div class="fname">Vortex meter<small>L-15</small></div><div class="fx">\(f = \dfrac{S_t V}{d}, \qquad Q = V A\)</div></div>
+    <div class="frow"><div class="fname">Ultrasonic sound speeds<small>L-15</small></div><div class="fx">\(c_{down} = c_F + \bar v_F\cos\beta_F, \quad c_{up} = c_F - \bar v_F\cos\beta_F, \quad L_F = \dfrac{D_{Pi}}{\sin\beta_F}\)</div></div>
+    <div class="frow"><div class="fname">Ultrasonic transit times<small>L-15</small></div><div class="fx">\(t_{down} = \dfrac{L_F}{c_{down}}, \quad t_{up} = \dfrac{L_F}{c_{up}}\)</div></div>
+    <div class="frow"><div class="fname">Ultrasonic flow velocity<small>L-15</small></div><div class="fx">\(\Delta t_F \approx \dfrac{2 D_{Pi}\bar v_F\tan\alpha_F}{c_F^2} \;\Rightarrow\; \bar v_F = \dfrac{\Delta t_F\,c_F^2}{2D_{Pi}\tan\alpha_F} = \dfrac{\Delta t_F\,c_F^2}{2L_F\cos\beta_F}\)<div class="where">α<sub>F</sub> = 90° − β<sub>F</sub></div></div></div>
+  </div></div>
+
+  <div class="fgroup" data-g="temp"><h3>Temperature</h3><div class="ftable">
+    <div class="frow"><div class="fname">Celsius ↔ Fahrenheit<small>L-16/17</small></div><div class="fx">\(\dfrac{C}{100} = \dfrac{F-32}{180} \;\Rightarrow\; F = \tfrac{9}{5}C + 32\)</div></div>
+    <div class="frow"><div class="fname">Kelvin &amp; Rankine<small>L-16/17</small></div><div class="fx">\(K = {}^\circ C + 273.15, \quad {}^\circ R = {}^\circ F + 459.6, \quad {}^\circ R = \tfrac{9}{5}K\)</div></div>
+    <div class="frow"><div class="fname">RTD conductor<small>L-16/17</small></div><div class="fx">\(R = \dfrac{L}{\sigma S}, \quad \sigma = \dfrac{\sigma_0}{1+\alpha(T-T_0)}\)</div></div>
+    <div class="frow"><div class="fname">RTD law<small>L-16/17</small></div><div class="fx">\(R(T) = R_0\left[1 + \alpha (T - T_0)\right], \quad \text{Sensitivity} = \alpha R_0\;(\Omega/^\circ C)\)</div></div>
+    <div class="frow"><div class="fname">Thermistor (β model)<small>L-16/17</small></div><div class="fx">\(R(T) = R_0\,e^{\beta\left(\frac{1}{T} - \frac{1}{T_0}\right)} \;\Rightarrow\; \beta = \dfrac{\ln(R_1/R_0)}{\frac{1}{T_1} - \frac{1}{T_0}}\)<div class="where">T in kelvin!</div></div></div>
+    <div class="frow"><div class="fname">Diode current<small>L-16/17</small></div><div class="fx">\(I = I_s\left(e^{V_f/\eta V_T} - 1\right), \quad V_T = \dfrac{kT}{q}, \quad I_s = C e^{-E_g/\eta k T}\)</div></div>
+    <div class="frow"><div class="fname">Diode sensor voltage<small>L-16/17</small></div><div class="fx">\(V_f = \dfrac{E_g}{q} - \dfrac{2kT}{q}\ln\!\left(\dfrac{C}{I}\right), \quad S = \dfrac{dV_f}{dT} = -\dfrac{2k}{q}\ln\!\left(\dfrac{C}{I}\right)\)<div class="where">k/q = 8.617×10⁻⁵ V/K; V<sub>f</sub> falls ≈ 1.5 mV per °C</div></div></div>
+  </div></div>
+
+  <div class="fgroup" data-g="mot"><h3>Motion: accelerometer, gyroscope, position</h3><div class="ftable">
+    <div class="frow"><div class="fname">Spring-mass-damper<small>L-20</small></div><div class="fx">\(ma = kx - b\dfrac{dx}{dt} \;\;\xrightarrow{\text{steady}}\;\; x = \dfrac{ma}{k}\)</div></div>
+    <div class="frow"><div class="fname">Capacitive accelerometer<small>L-20</small></div><div class="fx">\(C = \dfrac{\varepsilon A}{d}\) — capacitance doubles when gap halves, so \(x = d/2,\; k = \dfrac{ma}{x}\)</div></div>
+    <div class="frow"><div class="fname">Piezoresistive<small>L-20</small></div><div class="fx">\(\dfrac{\Delta R}{R} = GF\times\varepsilon\) (four resistors in a Wheatstone bridge)</div></div>
+    <div class="frow"><div class="fname">Gyroscope<small>L-20</small></div><div class="fx">\(\omega = \dfrac{d\theta}{dt}\) — Coriolis force on a vibrating mass</div></div>
+  </div></div>
+
+  <div class="fgroup" data-g="light"><h3>Light</h3><div class="ftable">
+    <div class="frow"><div class="fname">Wave relations<small>L-19</small></div><div class="fx">\(c = f\lambda, \qquad n = \dfrac{c}{v}, \qquad 1\,\text{Å} = 10^{-10}\,\text{m}\)</div></div>
+    <div class="frow"><div class="fname">Point source intensity<small>L-19</small></div><div class="fx">\(I = \dfrac{P}{4\pi R^2}\)</div></div>
+    <div class="frow"><div class="fname">Light level in dB<small>L-19</small></div><div class="fx">\(\text{dB} = 10\log_{10}\dfrac{\Phi_1}{\Phi_2}, \qquad \Delta L = 10\log_{10}\dfrac{d_1}{d_2}\)<div class="where">Slide rule: doubling distance → about 3 dB drop</div></div></div>
+    <div class="frow"><div class="fname">Units<small>L-19</small></div><div class="fx">lux = lm/m², foot-candle = lm/ft², phot = lm/cm²; 1 cd ⇔ 1/683 W per sr at 540×10¹² Hz</div></div>
+    <div class="frow"><div class="fname">Phototransistor<small>L-19</small></div><div class="fx">\(I_C \approx \beta\, I_{ph}\)</div></div>
+  </div></div>
+
+  <div class="fgroup" data-g="mag"><h3>Magnetic</h3><div class="ftable">
+    <div class="frow"><div class="fname">Hall voltage<small>L-21</small></div><div class="fx">\(V_H = K_H\dfrac{B\,I}{z}, \qquad K_H = \dfrac{1}{nq}\)<div class="where">B flux density (slide writes β), I current, z thickness, n carrier density</div></div></div>
+    <div class="frow"><div class="fname">Magnetostrictive position<small>L-21</small></div><div class="fx">\(d = v\,t\)<div class="where">torsional wave speed ≈ 2500–3000 m/s, one-way time</div></div></div>
+  </div></div>
+</section>
+
+<!-- ======================= DERIVATIONS ======================= -->
+<section class="panel" id="derivations" role="tabpanel">
+  <div class="panel-head"><div><h2>Derivations</h2><p>The ones most likely to be asked for 3 or 5 marks. Write each step as a line in your answer; the boxed result is what the examiner looks for.</p></div></div>
+
+  <div class="acc"><button type="button"><span class="t">Wheatstone bridge balance condition<small>Null deflection, R = S·P/Q</small></span><span class="tag">L-8</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ol class="steps">
+      <li>Arms: P (a–b), Q (b–c), R (a–d), S (d–c). Supply E across a–c, galvanometer G across b–d.</li>
+      <li>At balance, galvanometer current \(I_g = 0\), so \(V_b = V_d\). Hence \(I_1 = I_3\) (through P and Q) and \(I_2 = I_4\) (through R and S).</li>
+      <li>Equal drops from a: \(I_1 P = I_2 R\) … (1)</li>
+      <li>Equal drops to c: \(I_1 Q = I_2 S\) … (2)</li>
+      <li>Divide (1) by (2): \(\dfrac{P}{Q} = \dfrac{R}{S}\)</li>
+    </ol>
+    <div class="result">\[ R = S\,\dfrac{P}{Q} \]</div>
+    <p class="tip"><b>Slide problems:</b> P=100, Q=150, S=200 → R = 133.3 Ω. For R(T)=100(1+0.04T) with P=200, Q=S=100 → R must be 200 Ω → T = 25 °C.</p>
+  </div></div></div></div>
+
+  <div class="acc"><button type="button"><span class="t">Galvanometer current in an unbalanced bridge<small>Thevenin method</small></span><span class="tag">L-8</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ol class="steps">
+      <li>Remove G. Voltage at b (w.r.t. c): \(V_b = E\dfrac{Q}{P+Q}\). Voltage at d: \(V_d = E\dfrac{S}{R+S}\).</li>
+      <li>\(V_{th} = V_b - V_d\)</li>
+      <li>Short the supply: looking from b–d, \(R_{th} = P\parallel Q + R\parallel S = \dfrac{PQ}{P+Q} + \dfrac{RS}{R+S}\)</li>
+      <li>Reconnect G: \(I_g = \dfrac{V_{th}}{R_{th} + R_g}\)</li>
+    </ol>
+    <div class="result">Slide Problem 2 (P=Q=100, S=200, R=150, E=10 V, R<sub>g</sub>=20 Ω): \(V_{th} = 5 - 5.714 = -0.714\text{ V}\), \(R_{th} = 50 + 85.71 = 135.71\,\Omega\), \(|I_g| = \dfrac{0.714}{155.71} \approx 4.59\text{ mA}\) (flows d → b).</div>
+  </div></div></div></div>
+
+  <div class="acc"><button type="button"><span class="t">Strain gauge: ΔR/R = Gε<small>From R = ρL/A</small></span><span class="tag">L-8</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ol class="steps">
+      <li>\(R = \dfrac{\rho L}{A}\). Take log and differentiate: \(\dfrac{dR}{R} = \dfrac{d\rho}{\rho} + \dfrac{dL}{L} - \dfrac{dA}{A}\)</li>
+      <li>Stretching increases length (\(\varepsilon = dL/L\)) and shrinks area. For a wire, \(\dfrac{dA}{A} = -2\nu\varepsilon\) (ν = Poisson's ratio).</li>
+      <li>\(\dfrac{dR}{R} = \varepsilon(1 + 2\nu) + \dfrac{d\rho}{\rho}\)</li>
+      <li>Define gauge factor \(G = \dfrac{dR/R}{\varepsilon} = 1 + 2\nu + \dfrac{d\rho/\rho}{\varepsilon}\)</li>
+    </ol>
+    <div class="result">\[ \dfrac{\Delta R}{R} = G\,\varepsilon \]</div>
+    <p class="tip"><b>Why a bridge:</b> ΔR is tiny (e.g. 120 Ω × 2 × 500×10⁻⁶ = 0.12 Ω), so a Wheatstone bridge plus amplifier is used.</p>
+  </div></div></div></div>
+
+  <div class="acc"><button type="button"><span class="t">Potentiometer output voltage<small>Linear and rotary</small></span><span class="tag">L-8</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ol class="steps">
+      <li>Uniform element: resistance ∝ length. Total R<sub>T</sub> over length L; wiper at x gives \(R_x = R_T\dfrac{x}{L}\).</li>
+      <li>Current through element (no load current at wiper): \(i = \dfrac{v_{ref}}{R_T}\)</li>
+      <li>\(v_o = i R_x = \dfrac{v_{ref}}{R_T}\cdot R_T\dfrac{x}{L}\)</li>
+    </ol>
+    <div class="result">\[ v_o = v_{ref}\dfrac{x}{L}, \qquad \text{rotary: } v_o = v_{ref}\dfrac{\theta}{\theta_{max}} \]</div>
+    <p class="tip"><b>Slide answers:</b> 5 V × 40/100 = 2 V · 5 V × 90/270 = 1.67 V · 4 V → 216° · x(3)=5·9+30=75 mm → 3.75 V → 384 counts.</p>
+  </div></div></div></div>
+
+  <div class="acc"><button type="button"><span class="t">Hydrostatic pressure p = ρgh<small>Also manometer and level from pressure</small></span><span class="tag">L-9, L-10, L-11</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ol class="steps">
+      <li>Liquid column of base area A and height h: volume \(V = Ah\), mass \(m = \rho V = \rho A h\).</li>
+      <li>Weight \(W = mg = \rho A h g\)</li>
+      <li>\(p = \dfrac{W}{A} = \dfrac{\rho A h g}{A}\) — area cancels, so shape doesn't matter (hydrostatic paradox).</li>
+      <li>Since \(\gamma = \rho g\): \(p = \gamma h\). Layered liquids add: \(p = g(\rho_1 h_1 + \rho_2 h_2)\).</li>
+    </ol>
+    <div class="result">\[ p = \rho g h = \gamma h, \qquad h = \dfrac{P}{\rho g}, \qquad P_R - P_L = \gamma h \]</div>
+  </div></div></div></div>
+
+  <div class="acc"><button type="button"><span class="t">Time-of-flight level measurement<small>Ultrasonic, radar, laser, TDR</small></span><span class="tag">L-11, L-12</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ol class="steps">
+      <li>Pulse travels from sensor to surface and back: total path \(= 2d\).</li>
+      <li>\(2d = v t \Rightarrow d = \dfrac{vt}{2}\)</li>
+      <li>Sensor mounted at top of tank height H: level \(h = H - d\).</li>
+      <li>For TDR in a medium, wave slows: \(v = \dfrac{c}{\sqrt{\varepsilon_r}}\) (ε<sub>r</sub> = 4 → v = 1.5×10⁸ m/s).</li>
+    </ol>
+    <div class="result">\[ h = H - \dfrac{v t}{2} \]</div>
+    <p class="tip"><b>Slide answers:</b> ultrasonic 0.02 s, 10 m → 6.57 m · radar 0.1 µs, 50 m → 35 m · laser 100 ns, 15 m → 0 m · TDR 6 ns → 90 cm.</p>
+  </div></div></div></div>
+
+  <div class="acc"><button type="button"><span class="t">Capacitive level sensor<small>Linear interpolation and probe formula</small></span><span class="tag">L-12</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ol class="steps">
+      <li>Probe of height r: fraction d/r is in liquid (dielectric ε<sub>r</sub>), rest in air. Capacitance rises linearly with d.</li>
+      <li>Slide model: \(C_d = C_a\varepsilon_r\dfrac{d}{r} + C_a\), rearranged: \(d = \dfrac{r(C_d - C_a)}{\varepsilon_r C_a}\).</li>
+      <li>Since C is linear in h between empty (C<sub>min</sub>) and full (C<sub>max</sub>): \(\dfrac{h}{H} = \dfrac{C - C_{min}}{C_{max} - C_{min}}\)</li>
+    </ol>
+    <div class="result">Slide: 1.3 × (970 − 31)/(80 × 31) = 0.49 m · 1 × (20 − 5)/(50 − 5) = 0.33 m</div>
+  </div></div></div></div>
+
+  <div class="acc"><button type="button"><span class="t">Continuity, Bernoulli and Torricelli (V = √2gh)<small>Tank outflow, pressure at a point</small></span><span class="tag">L-13/14</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ol class="steps">
+      <li>Continuity (incompressible): volume in = volume out, \(Q = A_1V_1 = A_2V_2\).</li>
+      <li>Bernoulli between points A and B: \(\dfrac{P_A}{\gamma} + \dfrac{V_A^2}{2g} + Z_A = \dfrac{P_B}{\gamma} + \dfrac{V_B^2}{2g} + Z_B\)</li>
+      <li>Point 1 = free surface: P<sub>1</sub> = 1 atm, V<sub>1</sub> ≈ 0, Z<sub>1</sub> = h. Point 3 = outlet: P<sub>3</sub> = 1 atm, Z<sub>3</sub> = 0.</li>
+      <li>\(\dfrac{P_1}{\gamma} + 0 + h = \dfrac{P_3}{\gamma} + \dfrac{V_3^2}{2g} + 0 \Rightarrow V_3^2 = 2gh\)</li>
+      <li>With outlet losses: \(Q = C_D V_3 A_3\).</li>
+    </ol>
+    <div class="result">\[ V_3 = \sqrt{2gh} \]</div>
+    <p class="tip"><b>Slide example:</b> h=4.3 m → V₃ = 9.18 m/s, V₂ = 9.18×17/29 = 5.35 m/s, then Bernoulli between 2 and 3 → P₂ = 27.3 kPa (gauge).</p>
+  </div></div></div></div>
+
+  <div class="acc"><button type="button"><span class="t">Differential-pressure flow meter (orifice / venturi)<small>Why Q ∝ √h</small></span><span class="tag">L-15</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ol class="steps">
+      <li>Horizontal pipe (Z<sub>1</sub>=Z<sub>2</sub>): \(P_H + \tfrac12\rho v_1^2 = P_L + \tfrac12\rho v_2^2\)</li>
+      <li>Restriction: area down, velocity up, pressure down. \(\Delta P = P_H - P_L = \tfrac12\rho(v_2^2 - v_1^2)\)</li>
+      <li>Continuity: \(v_1 = v_2 (A_2/A_1) = v_2 (d_S/d_P)^2\)</li>
+      <li>\(\Delta P = \tfrac12\rho v_2^2\left[1 - (d_S/d_P)^4\right]\), and manometer gives \(\Delta P = \rho g h\)</li>
+      <li>\(v_2 = \dfrac{\sqrt{2gh}}{\sqrt{1-(d_S/d_P)^4}}\), \(Q = A_2 v_2\). All constants and losses are lumped into K.</li>
+    </ol>
+    <div class="result">Exam form (slides): \[ Q = K\left(\dfrac{\pi}{4}\right)\left(\dfrac{d_S}{d_P}\right)^2\sqrt{2gh} \]
+    Slide: 0.97 × 0.785 × (20/30)² × √(2×32.2×2.3) = 4.12 ft³/s</div>
+  </div></div></div></div>
+
+  <div class="acc"><button type="button"><span class="t">Ultrasonic transit-time flow meter<small>Full derivation, very likely for 5 marks</small></span><span class="tag">L-15</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ol class="steps">
+      <li>Windfall effect: sound travels faster with the flow. Component of flow along the path \(v_\parallel = \bar v_F\cos\beta_F = \bar v_F\sin\alpha_F\).</li>
+      <li>\(c_{down} = c_F + \bar v_F\sin\alpha_F, \quad c_{up} = c_F - \bar v_F\sin\alpha_F\)</li>
+      <li>Path length: \(L_F = \dfrac{D_{Pi}}{\sin\beta_F} = \dfrac{D_{Pi}}{\cos\alpha_F}\)</li>
+      <li>Transit times: \(t_{down} = \dfrac{D_{Pi}}{c_{down}\cos\alpha_F} + t_{delay}, \quad t_{up} = \dfrac{D_{Pi}}{c_{up}\cos\alpha_F} + t_{delay}\)</li>
+      <li>Difference (t<sub>delay</sub> cancels): \(\Delta t_F = t_{up} - t_{down} = \dfrac{D_{Pi}}{\cos\alpha_F}\cdot\dfrac{c_{down} - c_{up}}{c_{down}c_{up}}\)</li>
+      <li>Substitute: \(\Delta t_F = \dfrac{D_{Pi}}{\cos\alpha_F}\cdot\dfrac{2\bar v_F\sin\alpha_F}{c_F^2 - \bar v_F^2\sin^2\alpha_F}\)</li>
+      <li>Since \(\bar v_F \ll c_F\): \(\Delta t_F \approx \dfrac{2D_{Pi}\bar v_F\tan\alpha_F}{c_F^2}\)</li>
+    </ol>
+    <div class="result">\[ \bar v_F = \dfrac{\Delta t_F\,c_F^2}{2D_{Pi}\tan\alpha_F} = \dfrac{\Delta t_F\,c_F^2}{2L_F\cos\beta_F}, \qquad Q = A\bar v_F \]</div>
+    <p class="tip"><b>Slide answers:</b> t<sub>down</sub> = 0.5/(1480+3cos45°) = 3.37×10⁻⁴ s, t<sub>up</sub> = 3.38×10⁻⁴ s · v = 20×10⁻⁶ × 1500² / (2×1×cos30°) = 25.98 m/s.</p>
+  </div></div></div></div>
+
+  <div class="acc"><button type="button"><span class="t">RTD: R(T) = R₀[1 + α(T − T₀)]<small>From conductivity and geometry</small></span><span class="tag">L-16/17</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ol class="steps">
+      <li>Conductor of length L, area S, conductivity σ: \(R = \dfrac{L}{\sigma S}\)</li>
+      <li>Conductivity falls with temperature: \(\sigma = \dfrac{\sigma_0}{1 + \alpha(T - T_0)}\)</li>
+      <li>\(R(T) = \dfrac{L}{\sigma_0 S}\left[1 + \alpha(T - T_0)\right]\), and \(\dfrac{L}{\sigma_0 S} = R_0\)</li>
+      <li>Sensitivity \(= \dfrac{dR}{dT} = \alpha R_0\)</li>
+    </ol>
+    <div class="result">\[ R(T) = R_0\left[1 + \alpha(T - T_0)\right] \]</div>
+    <p class="tip"><b>Slide answers:</b> Pt wire 0.1 mm, 25 Ω → L = 2.003 m, R(100) = 35.67 Ω, S = 0.1067 Ω/°C. Copper spool 500 m, 0.2 mm → 204.84 Ω and 263.7 Ω.</p>
+  </div></div></div></div>
+
+  <div class="acc"><button type="button"><span class="t">Thermistor β from two readings<small>NTC model</small></span><span class="tag">L-16/17</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ol class="steps">
+      <li>Model: \(R(T) = R_0 e^{\beta(1/T - 1/T_0)}\) with T in kelvin.</li>
+      <li>Take ln: \(\ln\dfrac{R_1}{R_0} = \beta\left(\dfrac{1}{T_1} - \dfrac{1}{T_0}\right)\)</li>
+      <li>\(\beta = \dfrac{\ln(R_1/R_0)}{1/T_1 - 1/T_0}\)</li>
+    </ol>
+    <div class="result">Slide: \(\beta = \dfrac{\ln(29.49/10)}{1/273.15 - 1/298.15} \approx 3.52\times10^3\text{ K}\); R(−50 °C) ≈ 527.6 kΩ, R(50 °C) ≈ 4.01 kΩ.</div>
+  </div></div></div></div>
+
+  <div class="acc"><button type="button"><span class="t">PN-junction (diode) temperature sensor<small>V<sub>f</sub> vs T and sensitivity</small></span><span class="tag">L-16/17</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ol class="steps">
+      <li>Forward bias, e<sup>(…)</sup> ≫ 1: \(I \approx I_s e^{V_f/\eta V_T}\), \(V_T = kT/q\) … (1)</li>
+      <li>Saturation current: \(I_s = C e^{-E_g/\eta kT}\) … (2)</li>
+      <li>(2) in (1): \(I = C\exp\!\left(\dfrac{qV_f - E_g}{\eta kT}\right)\)</li>
+      <li>Take ln: \(\ln\dfrac{I}{C} = \dfrac{qV_f - E_g}{\eta kT} \Rightarrow V_f = \dfrac{E_g}{q} - \dfrac{\eta kT}{q}\ln\dfrac{C}{I}\), with η = 2</li>
+    </ol>
+    <div class="result">\[ V_f = \dfrac{E_g}{q} - \dfrac{2kT}{q}\ln\!\left(\dfrac{C}{I}\right), \qquad S = -\dfrac{2k}{q}\ln\!\left(\dfrac{C}{I}\right) \]
+    Slide: from 0.712 V at 273.15 K → C = 4.7; V(−45) = 0.7776 V, V(45) = 0.6465 V, |S| = 1.456 mV/°C</div>
+  </div></div></div></div>
+
+  <div class="acc"><button type="button"><span class="t">Accelerometer (spring–mass) and capacitive design<small>x = ma/k</small></span><span class="tag">L-20</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ol class="steps">
+      <li>Free body of mass m: spring force kx, damping force b·dx/dt. Newton: \(ma = kx - b\dfrac{dx}{dt}\)</li>
+      <li>Steady acceleration (dx/dt → 0) or negligible damping: \(x = \dfrac{ma}{k}\) — displacement is a direct measure of a.</li>
+      <li>Capacitive readout: \(C = \varepsilon A/d\). To double C the gap must halve, so \(x = d/2\).</li>
+      <li>\(k = \dfrac{ma}{x}\)</li>
+    </ol>
+    <div class="result">Slide airbag: \(k = \dfrac{0.02\times 60\times 9.81}{0.25\times10^{-3}} = 47\,088\text{ N/m}\)</div>
+  </div></div></div></div>
+
+  <div class="acc"><button type="button"><span class="t">Hall voltage<small>Lorentz force balance</small></span><span class="tag">L-21</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ol class="steps">
+      <li>Carriers (charge q, drift velocity v) in field B feel Lorentz force \(F = qvB\) and pile up on one side.</li>
+      <li>This builds a transverse field E<sub>H</sub> until \(qE_H = qvB \Rightarrow E_H = vB\).</li>
+      <li>Current \(I = nqvA = nqv(wz)\), so \(v = \dfrac{I}{nqwz}\).</li>
+      <li>\(V_H = E_H w = vBw = \dfrac{IB}{nqz}\)</li>
+    </ol>
+    <div class="result">\[ V_H = K_H\dfrac{BI}{z}, \qquad K_H = \dfrac{1}{nq} \]</div>
+  </div></div></div></div>
+
+  <div class="acc"><button type="button"><span class="t">Temperature scale conversion<small>Two-point linear scales</small></span><span class="tag">L-16/17</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ol class="steps">
+      <li>Freezing to boiling: Celsius 0→100 (100 divisions), Fahrenheit 32→212 (180 divisions).</li>
+      <li>Same fraction of the interval: \(\dfrac{C - 0}{100} = \dfrac{F - 32}{180}\)</li>
+      <li>\(F = \dfrac{9}{5}C + 32\); Kelvin has the same step size as Celsius, shifted: \(K = C + 273.15\).</li>
+    </ol>
+    <div class="result">20 °C = 68 °F · 25 °C = 298.15 K · °R = °F + 459.6 = 9K/5</div>
+  </div></div></div></div>
+</section>
+
+<!-- ======================= PAPERS ======================= -->
+<section class="panel" id="papers" role="tabpanel">
+  <div class="panel-head"><div><h2>Practice papers</h2><p>Same pattern as your exam: 25 marks, 1 hour. Four 2-mark, four 3-mark, one 5-mark question with an internal choice. Start the timer, write on paper, then open the solutions.</p></div></div>
+
+  <div class="paperbar">
+    <button class="setbtn" aria-pressed="true" data-set="A">Set A</button>
+    <button class="setbtn" aria-pressed="false" data-set="B">Set B</button>
+    <button class="setbtn" aria-pressed="false" data-set="C">Set C</button>
+    <div class="timer" id="timer">
+      <span class="clock" id="clock">60:00</span>
+      <span class="bar"><i id="tbar"></i></span>
+      <button type="button" id="tstart">Start</button>
+      <button type="button" id="treset">Reset</button>
+    </div>
+  </div>
+
+  <!-- SET A -->
+  <div class="paperset show" data-set="A"><div class="paper">
+    <div class="paper-hd"><h3>Mid-semester practice · Set A</h3><div class="meta"><b>Max marks 25</b><br>Time 1 hour · Assume g = 9.81 m/s²</div></div>
+
+    <div class="sec-title">Section A · 4 × 2 = 8 marks</div>
+    <div class="q"><span class="qn">Q1</span><div class="qt">A voltmeter reads 49 V across a resistor whose true voltage is 50 V. Find the absolute error, % error and % accuracy.
+      <br><button class="solbtn">Show solution</button><div class="sol"><div><div class="in">E<sub>a</sub> = 49 − 50 = −1 V · %E<sub>r</sub> = −1/50 × 100 = −2% · Accuracy = 100 − 2 = <span class="fin">98%</span></div></div></div></div><span class="mk">[2]</span></div>
+    <div class="q"><span class="qn">Q2</span><div class="qt">Differentiate between active and passive sensors with two examples each.
+      <br><button class="solbtn">Show solution</button><div class="sol"><div><div class="in">Active sensors generate their own electrical output from the measurand and need no external power: thermocouple, piezoelectric, photovoltaic cell, tachogenerator. Passive sensors need an external excitation/supply to produce output: LVDT, strain gauge, thermistor, potentiometer.</div></div></div></div><span class="mk">[2]</span></div>
+    <div class="q"><span class="qn">Q3</span><div class="qt">Convert 25 °C to °F, K and °R.
+      <br><button class="solbtn">Show solution</button><div class="sol"><div><div class="in">F = 9/5 × 25 + 32 = 77 °F · K = 25 + 273.15 = 298.15 K · °R = 77 + 459.6 = <span class="fin">536.6 °R</span> (or 9/5 × 298.15 = 536.7)</div></div></div></div><span class="mk">[2]</span></div>
+    <div class="q"><span class="qn">Q4</span><div class="qt">An ultrasonic level sensor on top of a 12 m tank receives the echo after 0.03 s. Speed of sound = 343 m/s. Find the liquid level.
+      <br><button class="solbtn">Show solution</button><div class="sol"><div><div class="in">d = vt/2 = 343 × 0.03 / 2 = 5.145 m · h = 12 − 5.145 = <span class="fin">6.855 m</span></div></div></div></div><span class="mk">[2]</span></div>
+
+    <div class="sec-title">Section B · 4 × 3 = 12 marks</div>
+    <div class="q"><span class="qn">Q5</span><div class="qt">A Wheatstone bridge balances with P = 150 Ω, Q = 300 Ω, S = 240 Ω. (a) Find the unknown R. (b) If R is a strain gauge with gauge factor 2 subjected to 500 µε, find ΔR. (c) State why a bridge is used.
+      <br><button class="solbtn">Show solution</button><div class="sol"><div><div class="in">(a) R = S·P/Q = 240 × 150/300 = <span class="fin">120 Ω</span><br>(b) ΔR = R·G·ε = 120 × 2 × 500×10⁻⁶ = <span class="fin">0.12 Ω</span><br>(c) ΔR is very small; the bridge works on null deflection and converts tiny resistance changes into a measurable voltage.</div></div></div></div><span class="mk">[3]</span></div>
+    <div class="q"><span class="qn">Q6</span><div class="qt">A rotary potentiometer of 10 kΩ has 300° travel and a 10 V supply. (a) Output at 120°? (b) Shaft angle for 7.5 V? (c) Reading of a 10-bit ADC (0–1023, 10 V ref) at 120°.
+      <br><button class="solbtn">Show solution</button><div class="sol"><div><div class="in">(a) v<sub>o</sub> = 10 × 120/300 = <span class="fin">4 V</span><br>(b) θ = 7.5/10 × 300 = <span class="fin">225°</span><br>(c) Count = 4/10 × 1023 = 409.2 ≈ <span class="fin">409</span></div></div></div></div><span class="mk">[3]</span></div>
+    <div class="q"><span class="qn">Q7</span><div class="qt">An open tank holds 2 m of water (ρ = 1000 kg/m³) with 1.5 m of oil (ρ = 800 kg/m³) on top. Find the gauge and absolute pressure at the bottom (P<sub>atm</sub> = 101.3 kPa).
+      <br><button class="solbtn">Show solution</button><div class="sol"><div><div class="in">P<sub>g</sub> = g(ρ<sub>w</sub>h<sub>w</sub> + ρ<sub>o</sub>h<sub>o</sub>) = 9.81(2000 + 1200) = <span class="fin">31.39 kPa</span><br>P<sub>abs</sub> = 31.39 + 101.3 = <span class="fin">132.7 kPa</span></div></div></div></div><span class="mk">[3]</span></div>
+    <div class="q"><span class="qn">Q8</span><div class="qt">Water flows at 1.5 m/s in a 20 cm pipe that narrows to 10 cm. Find (a) Q in L/s, (b) velocity in the 10 cm section, (c) Reynolds number in the 20 cm section and flow type (μ = 1×10⁻³ Pa·s).
+      <br><button class="solbtn">Show solution</button><div class="sol"><div><div class="in">(a) Q = π(0.1)² × 1.5 = 0.0471 m³/s = <span class="fin">47.1 L/s</span><br>(b) V<sub>2</sub> = 1.5 × (20/10)² = <span class="fin">6 m/s</span><br>(c) R = 1.5 × 0.2 × 1000 / 10⁻³ = <span class="fin">3×10⁵ → turbulent</span> (&gt; 5000)</div></div></div></div><span class="mk">[3]</span></div>
+
+    <div class="sec-title">Section C · 1 × 5 = 5 marks</div>
+    <div class="q"><span class="qn">Q9</span><div class="qt">(a) Derive the expression for mean flow velocity in a transit-time ultrasonic flow meter. (b) Two transducers are 0.8 m apart along the sound path at β<sub>F</sub> = 60° to the pipe axis in water (c<sub>F</sub> = 1480 m/s). The measured t<sub>up</sub> − t<sub>down</sub> = 5 µs. Find the flow velocity.
+      <div class="or">OR</div>
+      Explain the working of an LVDT for the three core positions, with a neat sketch of output vs displacement. List two advantages, two disadvantages and one application.
+      <br><button class="solbtn">Show solution</button><div class="sol"><div><div class="in">(a) See the Derivations tab: \(\bar v_F = \dfrac{\Delta t_F c_F^2}{2L_F\cos\beta_F}\) [3 marks for steps]<br>(b) v = 5×10⁻⁶ × 1480² / (2 × 0.8 × cos 60°) = 10.95 / 0.8 = <span class="fin">13.69 m/s</span> [2]<br><br><b>OR — LVDT:</b> primary coil excited by AC; two secondaries S1, S2 in series opposition; output E<sub>o</sub> = E<sub>1</sub> − E<sub>2</sub> (Faraday's law). Core toward S1: E<sub>1</sub> &gt; E<sub>2</sub>, output in phase with input. Null position: E<sub>1</sub> = E<sub>2</sub>, E<sub>o</sub> = 0. Core toward S2: E<sub>2</sub> &gt; E<sub>1</sub>, output 180° out of phase. Output magnitude ∝ displacement, phase gives direction (V-shaped magnitude plot). Advantages: high output, low hysteresis, low noise, low power. Disadvantages: sensitive to stray magnetic fields, affected by vibration and temperature. Applications: aircraft, turbines, hydraulics, ground-movement monitoring, secondary transducer for force/pressure.</div></div></div></div><span class="mk">[5]</span></div>
+  </div></div>
+
+  <!-- SET B -->
+  <div class="paperset" data-set="B"><div class="paper">
+    <div class="paper-hd"><h3>Mid-semester practice · Set B</h3><div class="meta"><b>Max marks 25</b><br>Time 1 hour · Assume g = 9.81 m/s²</div></div>
+
+    <div class="sec-title">Section A · 4 × 2 = 8 marks</div>
+    <div class="q"><span class="qn">Q1</span><div class="qt">Distinguish static and dynamic characteristics of an instrument. Name two of each.
+      <br><button class="solbtn">Show solution</button><div class="sol"><div><div class="in">Static: input constant or slowly varying — accuracy, precision, sensitivity, linearity, resolution, range, drift, hysteresis. Dynamic: input varies with time — speed of response, fidelity, lag, dynamic error, response time, damping. Example: length of a table (static) vs engine temperature while driving (dynamic).</div></div></div></div><span class="mk">[2]</span></div>
+    <div class="q"><span class="qn">Q2</span><div class="qt">A liquid has a specific weight of 8.83 kN/m³. Find its specific gravity and density (γ<sub>water</sub> = 9.8 kN/m³).
+      <br><button class="solbtn">Show solution</button><div class="sol"><div><div class="in">SG = 8.83/9.8 = <span class="fin">0.90</span> · ρ = 0.90 × 1000 = <span class="fin">≈ 900 kg/m³</span></div></div></div></div><span class="mk">[2]</span></div>
+    <div class="q"><span class="qn">Q3</span><div class="qt">A radar level sensor on a 40 m tank records a round-trip time of 0.2 µs. Find the liquid level.
+      <br><button class="solbtn">Show solution</button><div class="sol"><div><div class="in">d = 3×10⁸ × 0.2×10⁻⁶ / 2 = 30 m · h = 40 − 30 = <span class="fin">10 m</span></div></div></div></div><span class="mk">[2]</span></div>
+    <div class="q"><span class="qn">Q4</span><div class="qt">Compare photovoltaic and photoconductive cells (any two points).
+      <br><button class="solbtn">Show solution</button><div class="sol"><div><div class="in">Photovoltaic converts light into electrical energy and generates its own voltage (solar cell), light-created carriers are separated by the junction field. Photoconductive only changes resistance with light and needs an external supply (LDR, CdS), light creates extra carriers that raise conductivity.</div></div></div></div><span class="mk">[2]</span></div>
+
+    <div class="sec-title">Section B · 4 × 3 = 12 marks</div>
+    <div class="q"><span class="qn">Q5</span><div class="qt">A water manometer (γ = 9.8 kN/m³) shows a 45 cm difference between legs. (a) Find the differential pressure. (b) What height would a mercury manometer (γ = 133 kN/m³) show for the same pressure? (c) Which is better for small pressures and why?
+      <br><button class="solbtn">Show solution</button><div class="sol"><div><div class="in">(a) ΔP = γh = 9.8 × 0.45 = <span class="fin">4.41 kPa</span><br>(b) h = 4.41/133 = <span class="fin">3.32 cm</span><br>(c) Water: low specific weight gives a larger, easier-to-read deflection for small pressures.</div></div></div></div><span class="mk">[3]</span></div>
+    <div class="q"><span class="qn">Q6</span><div class="qt">A capacitive level sensor in a 2 m tank reads 10 pF empty and 85 pF full. Find the level when it reads 40 pF, and state the principle used.
+      <br><button class="solbtn">Show solution</button><div class="sol"><div><div class="in">h = H(C − C<sub>min</sub>)/(C<sub>max</sub> − C<sub>min</sub>) = 2 × 30/75 = <span class="fin">0.8 m</span><br>Principle: the liquid has a higher dielectric constant than air (water ≈ 80, air = 1), so capacitance rises in proportion to immersed length.</div></div></div></div><span class="mk">[3]</span></div>
+    <div class="q"><span class="qn">Q7</span><div class="qt">An NTC thermistor has R = 10 kΩ at 25 °C and β = 3500 K. Find its resistance at 60 °C. Also define NTC and PTC.
+      <br><button class="solbtn">Show solution</button><div class="sol"><div><div class="in">R = 10k · exp[3500(1/333.15 − 1/298.15)] = 10k · e<sup>−1.233</sup> = <span class="fin">≈ 2.91 kΩ</span><br>NTC: resistance falls as temperature rises. PTC: resistance rises as temperature rises.</div></div></div></div><span class="mk">[3]</span></div>
+    <div class="q"><span class="qn">Q8</span><div class="qt">Water flows at 2 m/s through a 50 m long, 10 cm diameter pipe with friction factor 0.02. Find the head loss and the corresponding pressure drop.
+      <br><button class="solbtn">Show solution</button><div class="sol"><div><div class="in">h<sub>L</sub> = fLV²/(2Dg) = 0.02 × 50 × 4 / (2 × 0.1 × 9.81) = <span class="fin">2.04 m</span><br>ΔP = ρgh<sub>L</sub> = 1000 × 9.81 × 2.04 = <span class="fin">20 kPa</span></div></div></div></div><span class="mk">[3]</span></div>
+
+    <div class="sec-title">Section C · 1 × 5 = 5 marks</div>
+    <div class="q"><span class="qn">Q9</span><div class="qt">(a) Derive R(T) = R₀[1 + α(T − T₀)] for an RTD. (b) A Pt100 (R₀ = 100 Ω at 0 °C, α = 0.00385 /°C) is in a bridge with P = Q = 100 Ω. Find R at 150 °C, its sensitivity, and the value of S needed to balance. If the bridge balances at S = 138.5 Ω, what is the temperature?
+      <div class="or">OR</div>
+      List the eight steps of the instrumentation process and apply them to a distributed water-quality monitoring system.
+      <br><button class="solbtn">Show solution</button><div class="sol"><div><div class="in">(a) Derivations tab (R = L/σS with σ = σ₀/(1+αΔT)). [2]<br>(b) R(150) = 100(1 + 0.00385 × 150) = <span class="fin">157.75 Ω</span> · S = αR₀ = <span class="fin">0.385 Ω/°C</span> · with P = Q, S = R = <span class="fin">157.75 Ω</span> · 138.5 = 100(1 + 0.00385T) → <span class="fin">T = 100 °C</span> [3]<br><br><b>OR:</b> 1 Study the plant (river/tank; pH, temperature, turbidity, DO, conductivity, TDS) · 2 Subsystems (sensor node, signal conditioning, DAQ, MCU, wireless, power, GUI) · 3 Operating requirements (continuous, accurate, outdoor, wireless, alarms, low maintenance) · 4 Constraints (corrosion, fouling, range, battery/solar, cost, calibration) · 5 Select sensors/actuators/conditioning (pH probe, RTD, optical turbidity, DO sensor, amplifier, ADC, radio, solar panel) · 6 Architecture (sensor nodes → local signal processor → Internet → central assessment unit) · 7 Simulate and modify · 8 Acquire, integrate and test.</div></div></div></div><span class="mk">[5]</span></div>
+  </div></div>
+
+  <!-- SET C -->
+  <div class="paperset" data-set="C"><div class="paper">
+    <div class="paper-hd"><h3>Mid-semester practice · Set C</h3><div class="meta"><b>Max marks 25</b><br>Time 1 hour · Assume g = 9.81 m/s² unless stated</div></div>
+
+    <div class="sec-title">Section A · 4 × 2 = 8 marks</div>
+    <div class="q"><span class="qn">Q1</span><div class="qt">A temperature sensor consistently overestimates by 4%. The true temperature is 80 °C. Find the reading and the absolute error.
+      <br><button class="solbtn">Show solution</button><div class="sol"><div><div class="in">Reading = 80 × 1.04 = <span class="fin">83.2 °C</span> · E<sub>a</sub> = 83.2 − 80 = <span class="fin">3.2 °C</span> (relative error 4%)</div></div></div></div><span class="mk">[2]</span></div>
+    <div class="q"><span class="qn">Q2</span><div class="qt">Light of wavelength 550 nm travels in glass of refractive index 1.5. Find its frequency and speed in glass.
+      <br><button class="solbtn">Show solution</button><div class="sol"><div><div class="in">f = c/λ = 3×10⁸ / 550×10⁻⁹ = <span class="fin">5.45×10¹⁴ Hz</span> · v = c/n = <span class="fin">2×10⁸ m/s</span></div></div></div></div><span class="mk">[2]</span></div>
+    <div class="q"><span class="qn">Q3</span><div class="qt">A laser level sensor on a 12 m tank measures a round-trip time of 60 ns. Find the level.
+      <br><button class="solbtn">Show solution</button><div class="sol"><div><div class="in">d = 3×10⁸ × 60×10⁻⁹ / 2 = 9 m · h = 12 − 9 = <span class="fin">3 m</span></div></div></div></div><span class="mk">[2]</span></div>
+    <div class="q"><span class="qn">Q4</span><div class="qt">A vortex meter has a 2 cm wide bluff body and Strouhal number 0.2. Vortex frequency is 50 Hz and the pipe area is 0.005 m². Find the velocity and flow rate.
+      <br><button class="solbtn">Show solution</button><div class="sol"><div><div class="in">V = f·d/S<sub>t</sub> = 50 × 0.02 / 0.2 = <span class="fin">5 m/s</span> · Q = VA = <span class="fin">0.025 m³/s</span></div></div></div></div><span class="mk">[2]</span></div>
+
+    <div class="sec-title">Section B · 4 × 3 = 12 marks</div>
+    <div class="q"><span class="qn">Q5</span><div class="qt">In a Wheatstone bridge P = 200 Ω, Q = 200 Ω, R = 100 Ω, S = 120 Ω, E = 12 V. Find the galvanometer current if R<sub>g</sub> = 50 Ω.
+      <br><button class="solbtn">Show solution</button><div class="sol"><div><div class="in">V<sub>b</sub> = 12 × 200/400 = 6 V · V<sub>d</sub> = 12 × 120/220 = 6.545 V · V<sub>th</sub> = −0.545 V<br>R<sub>th</sub> = 100 + (100×120/220) = 154.55 Ω<br>I<sub>g</sub> = 0.545/(154.55 + 50) = <span class="fin">2.67 mA</span> (from d to b)</div></div></div></div><span class="mk">[3]</span></div>
+    <div class="q"><span class="qn">Q6</span><div class="qt">Water drains from an open tank through an outlet 5 m below the free surface. Outlet area 10 cm², discharge coefficient 0.62 (g = 9.8). Find outlet velocity, ideal Q and actual Q.
+      <br><button class="solbtn">Show solution</button><div class="sol"><div><div class="in">V = √(2 × 9.8 × 5) = <span class="fin">9.90 m/s</span> · Q<sub>ideal</sub> = 9.90 × 10⁻³ = 9.9 L/s · Q = 0.62 × 9.9 = <span class="fin">6.14 L/s</span></div></div></div></div><span class="mk">[3]</span></div>
+    <div class="q"><span class="qn">Q7</span><div class="qt">A capacitive accelerometer has a 10 g proof mass on a spring of k = 2000 N/m. The rest gap is 0.5 mm giving 200 pF. Find the displacement at 5 g acceleration and the new capacitance if the gap closes.
+      <br><button class="solbtn">Show solution</button><div class="sol"><div><div class="in">x = ma/k = 0.01 × 5 × 9.81 / 2000 = <span class="fin">0.245 mm</span><br>C = C₀ d/(d − x) = 200 × 0.5/0.255 = <span class="fin">≈ 392 pF</span></div></div></div></div><span class="mk">[3]</span></div>
+    <div class="q"><span class="qn">Q8</span><div class="qt">A 24-in pipe has a 12-in orifice. The manometer difference is 1.5 ft and K = 0.98. Find Q in ft³/s (g = 32.2 ft/s²). Why is a Dall tube preferred over an orifice plate?
+      <br><button class="solbtn">Show solution</button><div class="sol"><div><div class="in">Q = 0.98 × (π/4) × (12/24)² × √(2 × 32.2 × 1.5) = 0.1924 × 9.83 = <span class="fin">1.89 ft³/s</span><br>Dall tube gives a large differential pressure with much lower permanent pressure loss.</div></div></div></div><span class="mk">[3]</span></div>
+
+    <div class="sec-title">Section C · 1 × 5 = 5 marks</div>
+    <div class="q"><span class="qn">Q9</span><div class="qt">A spool of 300 m copper wire, 0.25 mm diameter (σ = 5.8×10⁷ S/m, α = 0.0039 /°C at 20 °C) is used as a temperature sensor from −20 °C to 40 °C, connected directly to a 3 V source through a milliammeter. Find (a) resistance at 20 °C, (b) resistance and current at −20 °C and 40 °C, (c) sensitivity in mA/°C, (d) maximum power dissipated.
+      <div class="or">OR</div>
+      Derive the Hall voltage expression. Explain how a magnetostrictive sensor measures position; find the magnet position if the torsional wave (2800 m/s) reaches the pickup 150 µs after the current pulse.
+      <br><button class="solbtn">Show solution</button><div class="sol"><div><div class="in">(a) A = π(0.25×10⁻³)²/4 = 4.909×10⁻⁸ m² · R₂₀ = 300/(5.8×10⁷ × 4.909×10⁻⁸) = <span class="fin">105.4 Ω</span><br>(b) R(−20) = 105.4(1 − 0.156) = 88.93 Ω → I = 33.73 mA · R(40) = 105.4(1 + 0.078) = 113.6 Ω → I = 26.41 mA<br>(c) S = (33.73 − 26.41)/60 = <span class="fin">0.122 mA/°C</span><br>(d) P<sub>max</sub> at −20 °C = 3²/88.93 = <span class="fin">101.2 mW</span><br><br><b>OR:</b> Hall derivation in Derivations tab → V<sub>H</sub> = K<sub>H</sub>BI/z. Magnetostrictive: current pulse in waveguide makes a circular field; at the position magnet the fields interact (Wiedemann effect) → torsional wave; time to pickup gives distance. d = vt = 2800 × 150×10⁻⁶ = <span class="fin">0.42 m</span>.</div></div></div></div><span class="mk">[5]</span></div>
+  </div></div>
+</section>
+
+<!-- ======================= THEORY ======================= -->
+<section class="panel" id="theory" role="tabpanel">
+  <div class="panel-head">
+    <div><h2>Theoretical questions</h2><p>25 likely theory questions from your slides, each with a model answer sized to its marks. Try answering out loud first, then open the answer to check.</p></div>
+    <div class="progress"><div class="track"><i id="tqbar"></i></div><span id="tqcount">0/25 opened</span></div>
+  </div>
+  <div class="paper" id="tqlist">
+
+    <div class="q"><span class="qn">1</span><div class="qt">Define instrumentation. State its three main objectives with one example each.
+      <br><button class="solbtn tq">Show answer</button><div class="sol"><div><div class="in">Instrumentation is the science and technology of measurement, monitoring and control of physical variables. <b>Measurement:</b> collecting data on temperature, pressure, flow, voltage (thermometer in a hospital). <b>Monitoring:</b> continuously observing the measured value (ICU patient monitor, weather station, power plant). <b>Control:</b> adjusting the system according to the measurement (room gets hot → AC switches on). “If you cannot measure it, you cannot control it.”</div></div></div></div><span class="mk">[2] L-1</span></div>
+
+    <div class="q"><span class="qn">2</span><div class="qt">Draw and explain the block diagram of a general instrumentation system.
+      <br><button class="solbtn tq">Show answer</button><div class="sol"><div><div class="in">Physical quantity → Sensor → Signal conditioning → Processor → Display, and Processor → Controller → Actuator → back to the process.<br><b>Physical quantity:</b> anything measurable (temperature, pressure, light). <b>Sensor:</b> converts it to an electrical signal (thermistor: temperature → voltage). <b>Signal conditioning:</b> amplification, filtering, isolation. <b>Processor:</b> Arduino, ESP32, PLC, computer. <b>Display:</b> LCD, LED, mobile app. <b>Controller:</b> compares measured value with desired value (30 °C vs 24 °C setpoint). <b>Actuator:</b> performs the physical action (motor, relay, valve, pump, servo).</div></div></div></div><span class="mk">[3] L-1</span></div>
+
+    <div class="q"><span class="qn">3</span><div class="qt">Differentiate between accuracy and precision with an example.
+      <br><button class="solbtn tq">Show answer</button><div class="sol"><div><div class="in"><b>Accuracy</b> is the closeness of a measured value to the true value (true 100 °C, reading 99.9 °C → accurate). <b>Precision</b> is the agreement among repeated measurements (100.1, 100.2, 100.1 g → precise). An instrument can be precise but not accurate if all readings are consistently offset from the true value, e.g. a scale that always reads 5 g high. Accuracy matters in medical/lab devices; precision ensures repeatability.</div></div></div></div><span class="mk">[2] L-2</span></div>
+
+    <div class="q"><span class="qn">4</span><div class="qt">Explain any five static characteristics of an instrument.
+      <br><button class="solbtn tq">Show answer</button><div class="sol"><div><div class="in">Static characteristics apply when input is constant or changes slowly.<br><b>Sensitivity:</b> Δoutput/Δinput; ability to detect small changes. <b>Linearity:</b> output directly proportional to input (pressure sensor voltage rising linearly); simplifies calibration. <b>Resolution:</b> smallest detectable change (scale reading in 0.01 kg steps). <b>Range/span:</b> interval between min and max measurable values (0–100 V voltmeter). <b>Drift:</b> slow output change over time with no input change (thermometer reading 0.5 °C high after hours); needs recalibration. <b>Hysteresis:</b> different output for increasing vs decreasing input (load cell loading vs unloading).</div></div></div></div><span class="mk">[5] L-2</span></div>
+
+    <div class="q"><span class="qn">5</span><div class="qt">What are dynamic characteristics? Explain speed of response, fidelity, dynamic error and damping.
+      <br><button class="solbtn tq">Show answer</button><div class="sol"><div><div class="in">Dynamic characteristics describe instrument behaviour for time-varying inputs (car speed, blood pressure, engine temperature). If the instrument can't follow changes it gives wrong readings.<br><b>Speed of response:</b> time taken to start responding to an input change. <b>Fidelity:</b> ability to reproduce input variations without distortion (high-fidelity microphone). <b>Dynamic error:</b> difference between true input and measured output during transients (lag or overshoot). <b>Damping:</b> how quickly oscillations die out; a well-damped gauge needle settles quickly. Response time (time to reach, e.g., 95% of final value) is also used.</div></div></div></div><span class="mk">[3] L-4</span></div>
+
+    <div class="q"><span class="qn">6</span><div class="qt">Differentiate between sensors and actuators with two examples of each. State their roles.
+      <br><button class="solbtn tq">Show answer</button><div class="sol"><div><div class="in"><b>Sensor:</b> detects a physical property and converts it into a signal the system can read (strain gauge, tachometer, camera, piezoelectric accelerometer). Role: monitor and learn about the system, control, product testing, fault prediction, warnings, surveillance. <b>Actuator:</b> converts an electrical signal into physical action (stepper motor, solenoid, DC motor, hydraulic ram, pump, heater). Role: drive the plant and perform control actions. In a closed loop, the sensor feeds the controller and the controller drives the actuator.</div></div></div></div><span class="mk">[2] L-3</span></div>
+
+    <div class="q"><span class="qn">7</span><div class="qt">Classify sensors on the basis of (a) output, (b) energy source, (c) reference value and (d) complexity, with examples.
+      <br><button class="solbtn tq">Show answer</button><div class="sol"><div><div class="in"><b>(a) Output:</b> analog (continuous; photodiode, potentiometer, pressure sensor) vs digital (discrete/binary; IR sensor, encoder, digital accelerometer).<br><b>(b) Energy:</b> active sensors generate their own output (thermocouple, piezoelectric, photovoltaic cell, tachogenerator); passive sensors need an external supply (LVDT, strain gauge).<br><b>(c) Reference:</b> absolute sensor responds on an absolute scale (thermistor, depends on Kelvin temperature); relative sensor responds to a difference from a reference (thermocouple, depends on junction temperature difference).<br><b>(d) Complexity:</b> simple uses one energy conversion (thermistor: heat → electrical); complex uses several (LED + photodiode: electrical → light → electrical).<br>Also: contact vs non-contact.</div></div></div></div><span class="mk">[5] L-3</span></div>
+
+    <div class="q"><span class="qn">8</span><div class="qt">List and briefly explain the factors considered while selecting a sensor.
+      <br><button class="solbtn tq">Show answer</button><div class="sol"><div><div class="in">Measurand (RTD for temperature, LVDT for position), measurement range (0–200 °C → RTD, not thermistor), accuracy (medical ±0.1 °C vs furnace ±2 °C), sensitivity, resolution, response time (airbag: ms), environmental conditions (dust, humidity, water, vibration), reliability (aircraft), stability and drift, power consumption, output type (0–5 V, 4–20 mA, I²C, SPI, UART, CAN), size and weight, cost, ease of calibration/maintenance, compatibility with MCU/PLC/DAQ and protocol.</div></div></div></div><span class="mk">[3] L-3</span></div>
+
+    <div class="q"><span class="qn">9</span><div class="qt">Explain the sensors used in any two ADAS features of a car (e.g., adaptive cruise control and automatic emergency braking).
+      <br><button class="solbtn tq">Show answer</button><div class="sol"><div><div class="in"><b>Adaptive cruise control:</b> keeps a safe distance by adjusting speed. Radar (primary) measures distance and relative speed, works in rain/fog/night; front camera detects vehicles, lanes, signs; wheel-speed sensors give vehicle speed; yaw-rate and steering-angle sensors track turning. ECU drives throttle and brake actuators.<br><b>AEB:</b> applies brakes if collision is imminent. Front radar + front camera detect obstacles, wheel-speed and yaw-rate sensors give vehicle motion; ECU triggers the brake actuator and warning.<br>(Others: lane-keeping — front camera, steering angle; blind spot — rear radar, ultrasonic; parking — ultrasonic, rear camera; fatigue — IR camera.)</div></div></div></div><span class="mk">[3] L-3</span></div>
+
+    <div class="q"><span class="qn">10</span><div class="qt">Classify measuring instruments. Differentiate between null-type and deflection-type instruments, and between absolute and secondary instruments.
+      <br><button class="solbtn tq">Show answer</button><div class="sol"><div><div class="in">By principle: mechanical (vernier), electrical (ammeter), electronic (DMM); analog vs digital.<br><b>Absolute:</b> give value from deflection and instrument constant, no calibration needed, used in standards labs (tangent galvanometer, I = K tanθ). <b>Secondary:</b> read directly from deflection, must be calibrated against absolute ones.<br><b>Null type:</b> balance the unknown against a known reference until the indicator reads zero (Wheatstone bridge); more accurate. <b>Deflection type:</b> value read from pointer deflection; sub-types indicating, integrating (total energy over time) and recording.</div></div></div></div><span class="mk">[3] L-4</span></div>
+
+    <div class="q"><span class="qn">11</span><div class="qt">What is signal conditioning? Why is it needed? List its types.
+      <br><button class="solbtn tq">Show answer</button><div class="sol"><div><div class="in">Signal conditioning is manipulation of a sensor signal (amplification, filtering, etc.) to prepare it for the next stage, usually a DAQ/ADC. Needed because raw sensor signals may be in the wrong format, too small or large, noisy or non-linear. Chain: source → sensor → conditioning → ADC → driver software → application software. Types: non-linear → linearization, high amplitude → attenuation, low amplitude → amplification, noisy → filtering, analog → digital, non-isolated → isolation.</div></div></div></div><span class="mk">[3] L-5</span></div>
+
+    <div class="q"><span class="qn">12</span><div class="qt">Why is estimation important in sensing? Compare least squares and maximum likelihood estimation.
+      <br><button class="solbtn tq">Show answer</button><div class="sol"><div><div class="in">Sensor data is noisy and may not give the true value, so sensing is treated as estimation of the true value from measured data. It reduces errors, removes noise, improves accuracy and reliability, predicts unknowns and supports control and real-time decisions. Methods: LS, ML, Kalman filter.<br><b>LSE:</b> minimizes sum of squared errors; gives best-fit line; squaring stops +/− errors cancelling and weights large errors; common in calibration; best for Gaussian noise. <b>MLE:</b> maximizes the probability (likelihood) of the observed data; gives most probable parameter; works for many distributions; used in statistics, ML, GPS, robotics.</div></div></div></div><span class="mk">[3] L-5</span></div>
+
+    <div class="q"><span class="qn">13</span><div class="qt">What is calibration? Explain the calibration curve and draw the circuits for DC ammeter and voltmeter calibration.
+      <br><button class="solbtn tq">Show answer</button><div class="sol"><div><div class="in">Calibration is checking an instrument's accuracy by comparing it with a more accurate standard: apply a known input, record output. <b>Calibration curve:</b> output S vs input X; slope dS/dX = sensitivity; linear up to X₀, then saturates. <b>Ammeter:</b> DC supply (0–30 V), switch, rheostat, standard ammeter A<sub>s</sub> and test ammeter A<sub>x</sub> in <u>series</u> with a load resistor R<sub>L</sub>; both carry same current, compare readings. <b>Voltmeter:</b> supply, switch, rheostat; standard V<sub>s</sub> and test V<sub>x</sub> connected in <u>parallel</u> so both see the same voltage. Vary rheostat, record, plot error/correction.</div></div></div></div><span class="mk">[5] L-5</span></div>
+
+    <div class="q"><span class="qn">14</span><div class="qt">Explain microminiature, intelligent, embedded, distributed and hierarchical sensors with examples.
+      <br><button class="solbtn tq">Show answer</button><div class="sol"><div><div class="in"><b>Microminiature:</b> IC/MEMS-based, few mm, low power, built-in conditioning and ADC (smartphone MEMS accelerometer). <b>Intelligent:</b> also filters noise, compensates errors, self-calibrates, diagnoses faults, decides and communicates digitally (parking sensor, smart camera, smart thermostat). <b>Integrated/embedded:</b> built into equipment (laptop CPU temperature sensor controls fan; engine temperature sensor). <b>Distributed:</b> many networked sensors over a large area (weather stations, forest-fire detection, smart agriculture). <b>Hierarchical:</b> multi-level processing, each level more meaningful (self-driving car: raw sensors → noise removal/fusion → identify objects → brake/steer decision).</div></div></div></div><span class="mk">[5] L-6</span></div>
+
+    <div class="q"><span class="qn">15</span><div class="qt">Compare the human sensory system with an engineering instrumentation system.
+      <br><button class="solbtn tq">Show answer</button><div class="sol"><div><div class="in">Stimulus (light, sound, pressure, chemicals, heat) → receptors/dendrites convert it to electrochemical impulses (<b>sensor and transducer</b>) → neural axons carry action potentials (<b>communication</b>) → central nervous system interprets and creates perception (<b>signal processing</b>). An engineering system similarly uses sensors/transducers, a communication channel and a processor/controller. Five senses: vision, hearing, touch (advanced in robots: cameras, microphones, tactile sensors), smell and taste (chemical, less developed). Humans also sense balance, pressure, temperature, pain, motion.</div></div></div></div><span class="mk">[3] L-6</span></div>
+
+    <div class="q"><span class="qn">16</span><div class="qt">Explain the eight steps of the instrumentation process using a homecare robotic system as an example.
+      <br><button class="solbtn tq">Show answer</button><div class="sol"><div><div class="in">1 <b>Study the plant:</b> person and home — assistance needed, health parameters, obstacles, fall detection. 2 <b>Subsystems:</b> health monitoring, environment sensing, navigation, processing, actuation, communication, GUI. 3 <b>Requirements:</b> continuous monitoring, quick fall detection, safe navigation, battery life, real-time alerts. 4 <b>Constraints:</b> size, weight, battery, compute, cost, wireless range, lighting, privacy, safety. 5 <b>Select components:</b> PPG/ECG, temperature, SpO₂, accelerometer + gyroscope, ultrasonic/LiDAR, camera, encoders/IMU, DC/servo motors, buzzer; amplifiers, filters, ADC. 6 <b>Architecture:</b> integrate sensing, processing, communication, actuation. 7 <b>Simulate:</b> navigation, fall algorithms, battery, control; modify and re-simulate. 8 <b>Acquire and integrate:</b> buy parts, assemble, test.</div></div></div></div><span class="mk">[5] L-7</span></div>
+
+    <div class="q"><span class="qn">17</span><div class="qt">What is a resistance sensor? Explain the working of a strain gauge and why a Wheatstone bridge is used with it.
+      <br><button class="solbtn tq">Show answer</button><div class="sol"><div><div class="in">A resistance sensor's resistance R = ρL/A changes with the measurand (RTD, thermistor, strain gauge, potentiometer, LDR). <b>Strain gauge:</b> a zig-zag resistance wire on a polyimide backing bonded to the part. When stretched, length rises and area falls, so R rises: ΔR/R = Gε. The change is very small, so a Wheatstone bridge (null method, highly sensitive to small ΔR) plus amplifier converts it to a measurable voltage. The bridge is also used with RTDs and LDRs.</div></div></div></div><span class="mk">[3] L-8</span></div>
+
+    <div class="q"><span class="qn">18</span><div class="qt">Define absolute, gauge, differential and vacuum pressure. Why is hydrostatic pressure independent of the container shape?
+      <br><button class="solbtn tq">Show answer</button><div class="sol"><div><div class="in"><b>Absolute:</b> relative to perfect vacuum (psia). <b>Gauge:</b> relative to atmospheric pressure (psig), P<sub>g</sub> = P<sub>abs</sub> − P<sub>atm</sub>. <b>Differential:</b> difference between two points. <b>Vacuum:</b> between total vacuum and atmospheric, "negative gauge" (−5 psig = 9.7 psia). Atmospheric ≈ 14.7 psi = 101.3 kPa at sea level. Hydrostatic pressure p = W/A = ρAhg/A = ρgh — the area cancels, so it depends only on density and depth (hydrostatic paradox).</div></div></div></div><span class="mk">[3] L-9</span></div>
+
+    <div class="q"><span class="qn">19</span><div class="qt">Explain diaphragm, capsule, bellows and Bourdon tube pressure-sensing elements. Compare C-type, spiral and helical Bourdon tubes.
+      <br><button class="solbtn tq">Show answer</button><div class="sol"><div><div class="in"><b>Diaphragm:</b> thin flexible membrane (steel, Ti, Si, polymer), flat or corrugated, deflects with ΔP (F = ΔP·A); deflection read by strain gauge, capacitive plate or piezoresistor. <b>Capsule:</b> two diaphragms joined at edges; more displacement, low pressures up to 50 psi. <b>Bellows:</b> thin corrugated tube, expands axially; up to 800 psi; absolute, gauge or differential. <b>Bourdon tube:</b> curved flattened tube straightens under pressure; free-end motion drives a pointer. C-type (≈270°): moderate displacement, general-purpose. Spiral: large displacement, low pressure/high sensitivity. Helical: very large displacement, high pressure and precision.</div></div></div></div><span class="mk">[5] L-10</span></div>
+
+    <div class="q"><span class="qn">20</span><div class="qt">Classify level measurement methods. Explain the float-type and ultrasonic level sensors.
+      <br><button class="solbtn tq">Show answer</button><div class="sol"><div><div class="in">Classes: single-point (ON/OFF at one level) vs continuous (level at every instant, V = Ah); direct (sight glass, float) vs indirect (hydrostatic pressure, h = P/ρg). <b>Float:</b> a buoyant float (density less than liquid) rides the surface; its movement, pulley rotation or arm angle is converted into a level signal. Advantages: fairly density-independent, accurate, robust, linear. <b>Ultrasonic:</b> non-contact; transducer at top sends a sound pulse, echo returns from surface; time of flight gives d = vt/2 and level h = H − d. Works for liquids and free-flowing solids.</div></div></div></div><span class="mk">[5] L-11</span></div>
+
+    <div class="q"><span class="qn">21</span><div class="qt">Explain radar, TDR and capacitive level sensors. Why do higher-frequency radar sensors perform better?
+      <br><button class="solbtn tq">Show answer</button><div class="sol"><div><div class="in"><b>Radar:</b> top-mounted, sends microwaves (6, 10, 24, 80 GHz), receives reflection, ToF gives distance and level; non-contact, works for liquids, slurries, powders. Higher frequency → shorter wavelength → narrower beam, detects smaller level changes, less interference from tank internals, better for tall/narrow tanks. <b>TDR:</b> EM pulse guided along a probe, reflects at the surface; speed in medium c/√ε<sub>r</sub>. <b>Capacitive:</b> probe and tank wall form a capacitor; liquid (water ε<sub>r</sub> ≈ 80) replaces air (ε<sub>r</sub> = 1), so capacitance rises linearly with level.</div></div></div></div><span class="mk">[3] L-12</span></div>
+
+    <div class="q"><span class="qn">22</span><div class="qt">Differentiate laminar and turbulent flow. Explain the Reynolds number and state Bernoulli's principle.
+      <br><button class="solbtn tq">Show answer</button><div class="sol"><div><div class="in"><b>Laminar:</b> low flow, smooth parallel layers, little mixing, parabolic velocity profile (zero at wall, max at centre). <b>Turbulent:</b> high flow, irregular paths, mixing and swirling. Reynolds number R = VDρ/μ is dimensionless: R ≤ 2000 laminar, 2000–5000 mixed, &gt; 5000 turbulent. Liquid viscosity falls as temperature rises. <b>Bernoulli:</b> total mechanical energy of a flowing fluid is constant: P + ½ρv² + ρgh = constant. It ignores friction and fitting losses.</div></div></div></div><span class="mk">[3] L-13</span></div>
+
+    <div class="q"><span class="qn">23</span><div class="qt">Explain the working of differential-pressure flow meters. Compare orifice plate, venturi tube, flow nozzle and Dall tube. Also explain the rotameter.
+      <br><button class="solbtn tq">Show answer</button><div class="sol"><div><div class="in">A restriction reduces area, so velocity rises and static pressure falls (Bernoulli); the pressure difference P<sub>H</sub> − P<sub>L</sub> is measured by a differential gauge and Q ∝ √ΔP. <b>Orifice:</b> simple and cheap, high permanent loss. <b>Venturi:</b> gradual taper, handles suspended solids, good accuracy, expensive. <b>Flow nozzle:</b> for clean liquids, cost/accuracy between orifice and venturi. <b>Dall tube:</b> large ΔP with low permanent pressure loss. <b>Rotameter:</b> variable-area meter; tapered tube with float; flow lifts float until drag + buoyancy = weight (F<sub>D</sub> + F<sub>B</sub> = W); area grows with height so the float settles at a position read on a scale.</div></div></div></div><span class="mk">[5] L-15</span></div>
+
+    <div class="q"><span class="qn">24</span><div class="qt">Explain the working of an LVDT with a neat diagram for all three core positions. State advantages and disadvantages.
+      <br><button class="solbtn tq">Show answer</button><div class="sol"><div><div class="in">One primary coil (AC excited) and two identical secondaries S1, S2 connected in series opposition, with a movable soft-iron core. Based on Faraday's law; output E<sub>o</sub> = E<sub>1</sub> − E<sub>2</sub>. <b>Core toward S1:</b> E<sub>1</sub> &gt; E<sub>2</sub>, output positive, in phase with input. <b>Null position:</b> E<sub>1</sub> = E<sub>2</sub>, output zero. <b>Core toward S2:</b> E<sub>2</sub> &gt; E<sub>1</sub>, output negative, 180° out of phase. Magnitude gives displacement, phase gives direction. Advantages: high output, low hysteresis, low electrical noise, low power. Disadvantages: sensitive to stray magnetic fields, affected by vibration and temperature. Uses: automation, aircraft, turbines, hydraulics, landslide monitoring, secondary transducer for force/pressure.</div></div></div></div><span class="mk">[5] L-16/17</span></div>
+
+    <div class="q"><span class="qn">25</span><div class="qt">Explain the working principle of (a) Hall-effect sensor, (b) photodiode and (c) capacitive accelerometer.
+      <br><button class="solbtn tq">Show answer</button><div class="sol"><div><div class="in"><b>(a) Hall effect:</b> current in a semiconductor strip in a magnetic field; Lorentz force pushes carriers to one side, creating a voltage perpendicular to both current and field, V<sub>H</sub> = K<sub>H</sub>BI/z; amplified and used for position, proximity, speed (hydraulic cylinder displacement). <b>(b) Photodiode:</b> photons enter the depletion region, create electron-hole pairs, the junction field separates them, producing photocurrent proportional to light (used reverse biased as a light detector). <b>(c) Capacitive accelerometer:</b> one plate fixed to the body, the other is a proof mass on a spring; acceleration moves the mass (x = ma/k), changing the gap and C = εA/d; the capacitance change gives acceleration (airbag deployment).</div></div></div></div><span class="mk">[5] L-19–21</span></div>
+
+  </div>
+</section>
+
+<!-- ======================= REVISION ======================= -->
+<section class="panel" id="revision" role="tabpanel">
+  <div class="panel-head">
+    <div><h2>Lecture-by-lecture revision</h2><p>Each lecture's key points and formulas. Tick a lecture once you've gone through it; your progress is saved in this browser.</p></div>
+    <div class="progress"><div class="track"><i id="rbar"></i></div><span id="rcount">0/18</span></div>
+  </div>
+  <div id="revlist">
+
+  <div class="acc rev" data-id="L1"><button type="button"><span class="t">Introduction to instrumentation<small>Measure → monitor → control</small></span><span class="tag">L-1</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ul><li>Instrumentation is the science of measurement, monitoring and control of physical variables. “If you cannot measure it, you cannot control it.”</li>
+    <li>Chain: physical quantity → sensor → signal conditioning (amplify, filter, isolate) → processor (Arduino, ESP32, PLC) → display → controller (compares with setpoint) → actuator (motor, relay, valve, pump).</li>
+    <li>Automation: control systems, sensors and actuators doing tasks with little human input (motion-sensor light, FASTag, face-recognition attendance).</li>
+    <li>Error measures: absolute, relative, percentage, accuracy.</li></ul>
+    <div class="keyf"><span>\(E_a = A_m - A_t\)</span><span>\(\%E_r = \frac{E_a}{A_t}\times100\)</span><span>\(a = 100 - |\%E_r|\)</span></div>
+    <p class="tip"><b>Slide answers:</b> −2% · 0.16 A, correction −0.16 A · −1 V, −1.25%, 98.75% · 71.4 °C, 3.4 °C, 5%</p>
+    <label class="done-box"><input type="checkbox"> Mark as revised</label>
+  </div></div></div></div>
+
+  <div class="acc rev" data-id="L2"><button type="button"><span class="t">Static characteristics<small>Accuracy, precision, sensitivity and friends</small></span><span class="tag">L-2</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ul><li><b>Accuracy</b>: closeness to true value. <b>Precision</b>: agreement among repeated readings (100.1, 100.2, 100.1 g is precise, not necessarily accurate).</li>
+    <li><b>Sensitivity</b>: Δoutput/Δinput. <b>Linearity</b>: output ∝ input. <b>Resolution</b>: smallest detectable change (0.01 kg scale).</li>
+    <li><b>Range/span</b>: min to max measurable. <b>Drift</b>: slow output change over time with no input change. <b>Hysteresis</b>: different output for rising vs falling input.</li>
+    <li>Static = input constant or slow; dynamic = time-varying input.</li></ul>
+    <div class="keyf"><span>\(S = \frac{\Delta\text{Out}}{\Delta\text{In}}\)</span></div>
+    <label class="done-box"><input type="checkbox"> Mark as revised</label>
+  </div></div></div></div>
+
+  <div class="acc rev" data-id="L3"><button type="button"><span class="t">Sensors, actuators, classification &amp; selection<small>ADAS examples, 15 selection factors</small></span><span class="tag">L-3</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ul><li>Sensor: physical → signal. Actuator: electrical signal → physical action (stepper motor, solenoid, pump, heater).</li>
+    <li>Automotive ADAS: lane-keeping (front camera, steering-angle, wheel-speed, yaw-rate), adaptive cruise (radar primary), blind-spot (rear radar, ultrasonic), AEB (radar + camera), parking assist (ultrasonic), fatigue monitoring (IR camera).</li>
+    <li>Classification: output (analog vs digital), energy (active = self-generating: thermocouple, piezo, PV, tachogenerator; passive = needs supply: LVDT), reference (absolute: thermistor; relative: thermocouple), complexity (simple: one energy conversion; complex: LED + photodiode), contact.</li>
+    <li>Selection: measurand, range, accuracy, sensitivity, resolution, response time, environment, reliability, drift, power, output type (0–5 V, 4–20 mA, I²C, SPI, UART, CAN), size, cost, calibration, compatibility.</li></ul>
+    <label class="done-box"><input type="checkbox"> Mark as revised</label>
+  </div></div></div></div>
+
+  <div class="acc rev" data-id="L4"><button type="button"><span class="t">Dynamic characteristics &amp; instrument classification<small>Response, fidelity, damping; null vs deflection</small></span><span class="tag">L-4</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ul><li>Speed of response (time to start responding), fidelity (reproduce without distortion), dynamic error (difference during transients), response time (to reach e.g. 95% of final value), damping (reduces oscillation), lag.</li>
+    <li>Mechanical (vernier), electrical (ammeter), electronic (DMM) instruments.</li>
+    <li>Absolute instruments need no calibration, e.g. tangent galvanometer I = K tanθ. Secondary instruments read directly from deflection.</li>
+    <li>Null type (Wheatstone bridge: balance against a reference) vs deflection type (indicating, integrating, recording). Digital vs analog.</li></ul>
+    <div class="keyf"><span>\(I = K\tan\theta\)</span></div>
+    <label class="done-box"><input type="checkbox"> Mark as revised</label>
+  </div></div></div></div>
+
+  <div class="acc rev" data-id="L5"><button type="button"><span class="t">Signal conditioning, estimation, calibration<small>LSE vs MLE, ammeter/voltmeter calibration</small></span><span class="tag">L-5</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ul><li>Signal chain: source → sensor (noisy) → conditioning → ADC → driver software → application.</li>
+    <li>Conditioning types: linearization, attenuation, amplification, noise removal, A→D, isolation.</li>
+    <li>Estimation finds the true value from noisy data: Least Squares (minimize sum of squared errors, best-fit line, suits Gaussian noise, used in calibration), Maximum Likelihood (maximize probability of observed data, any distribution), Kalman filter.</li>
+    <li>Calibration: apply known input, record output, plot calibration curve; sensitivity = slope dS/dX; saturation beyond X₀. DC ammeter: standard and test ammeter in series. DC voltmeter: in parallel.</li></ul>
+    <label class="done-box"><input type="checkbox"> Mark as revised</label>
+  </div></div></div></div>
+
+  <div class="acc rev" data-id="L6"><button type="button"><span class="t">Innovative sensors &amp; human sensory system<small>MEMS, intelligent, distributed, hierarchical</small></span><span class="tag">L-6</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ul><li>Microminiature: IC/MEMS, tiny, low power, built-in processing (smartphone accelerometer). Intelligent: filter, compensate, self-calibrate, diagnose, decide (parking sensor). Integrated/embedded: built into equipment (laptop CPU temperature). Distributed: many networked sensors (weather, forest fire, smart city). Hierarchical: multi-level processing (self-driving car: raw → fuse → identify → decide).</li>
+    <li>Five senses: vision, hearing, touch are advanced; smell and taste are chemical and less common.</li>
+    <li>Analogy: stimulus → receptor (sensor/transducer) → axons (communication) → CNS (signal processing).</li></ul>
+    <label class="done-box"><input type="checkbox"> Mark as revised</label>
+  </div></div></div></div>
+
+  <div class="acc rev" data-id="L7"><button type="button"><span class="t">Instrumentation process<small>8 steps, three case studies</small></span><span class="tag">L-7</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ul><li>Steps: (1) study the plant, (2) split into subsystems, (3) operating requirements/specs, (4) constraints, (5) select sensors, actuators, conditioning, (6) overall architecture, (7) computer simulation (select → simulate → evaluate → modify), (8) acquire and integrate.</li>
+    <li>Telemedicine: sensor jacket, digital stethoscope, ECG, BP, SpO₂, GUI at both ends.</li>
+    <li>Homecare robot: encoders, torque, tactile, laser/ultrasonic rangefinders, cameras, IMU for fall detection.</li>
+    <li>Water quality: pH, temperature, turbidity, DO, conductivity sensor nodes → microcontroller → radio → local signal processor → Internet → central assessment unit.</li></ul>
+    <label class="done-box"><input type="checkbox"> Mark as revised</label>
+  </div></div></div></div>
+
+  <div class="acc rev" data-id="L8"><button type="button"><span class="t">Resistance sensors, Wheatstone bridge, potentiometers<small>Big numericals lecture</small></span><span class="tag">L-8</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ul><li>Resistance sensors: RTD, thermistor, strain gauge, potentiometer, LDR, resistive pressure sensor.</li>
+    <li>Strain gauge: stretching raises L, lowers A → R rises; small change so use a bridge.</li>
+    <li>Wheatstone bridge: null deflection; uses — precise R, strain gauges, RTDs, LDRs.</li>
+    <li>Potentiometer: 10 Ω – 1 MΩ, 10 mW to several W; linear and rotary; used in robots, steering angle, joysticks, servo feedback.</li></ul>
+    <div class="keyf"><span>\(R=\frac{\rho L}{A}\)</span><span>\(\frac{\Delta R}{R}=G\varepsilon\)</span><span>\(R = S\frac{P}{Q}\)</span><span>\(v_o = v_{ref}\frac{x}{L}\)</span></div>
+    <p class="tip"><b>Slide answers:</b> 133.3 Ω · I<sub>g</sub> ≈ 4.59 mA · T = 25 °C · 2 V · 1.67 V, 216° · 3.75 V, 384</p>
+    <label class="done-box"><input type="checkbox"> Mark as revised</label>
+  </div></div></div></div>
+
+  <div class="acc rev" data-id="L9"><button type="button"><span class="t">Pressure fundamentals<small>Hydrostatics, SG, gauge/absolute/vacuum</small></span><span class="tag">L-9</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ul><li>Pressure depends only on depth, not shape (hydrostatic paradox). Head can be used as a measure of pressure.</li>
+    <li>SG = ρ/ρ<sub>water</sub>, dimensionless; for gases relative to air at 60 °F, 14.7 psia.</li>
+    <li>Terms: total vacuum, atmospheric (14.7 psi = 101.36 kPa, 12.2 psi at 5000 ft), gauge (psig), absolute (psia), vacuum/negative gauge (−5 psig = 9.7 psia), differential.</li>
+    <li>Units: Pa, bar, psi, in/cm H₂O at 4 °C, in/mm Hg at 0 °C, mbar.</li></ul>
+    <div class="keyf"><span>\(p=\rho g h\)</span><span>\(P_{abs}=P_g+P_{atm}\)</span><span>\(SG=\gamma/\gamma_w\)</span></div>
+    <p class="tip"><b>Slide answers:</b> 12.5 kPa · 5.1 m · 46.1 kPa · 39.7 m · 36 m · glycerin SG 1.26</p>
+    <label class="done-box"><input type="checkbox"> Mark as revised</label>
+  </div></div></div></div>
+
+  <div class="acc rev" data-id="L10"><button type="button"><span class="t">Manometer &amp; pressure-sensing elements<small>Diaphragm, capsule, bellows, Bourdon, BMP280</small></span><span class="tag">L-10</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ul><li>Diaphragm: flexible membrane (steel, Ti, Si, polymer) deflects with ΔP; read by strain gauge, capacitive plate (C = εA/d) or piezoresistor.</li>
+    <li>Capsule: two diaphragms joined, more displacement, low pressure, up to 50 psi (350 kPa).</li>
+    <li>Bellows: corrugated tube, axial movement, up to 800 psi (5 MPa), absolute/gauge/differential.</li>
+    <li>Bourdon tube: curved flattened tube straightens under pressure; C-type (≈270°, general), spiral (large displacement, low pressure), helical (very large, high pressure).</li>
+    <li>BMP280: MEMS diaphragm, internal ADC, I²C (SDA → A4, SCL → A5, 3.3 V).</li></ul>
+    <div class="keyf"><span>\(P_R-P_L=\gamma h\)</span><span>\(F=\Delta P\,A\)</span></div>
+    <p class="tip"><b>Slide answers:</b> 8.5 × 0.83 = 7.05 kPa · ρ = 7.85/(9.81×1.35) = 0.59 Mg/m³</p>
+    <label class="done-box"><input type="checkbox"> Mark as revised</label>
+  </div></div></div></div>
+
+  <div class="acc rev" data-id="L11"><button type="button"><span class="t">Level sensors I<small>Sight glass, float, ultrasonic, pressure, displacer</small></span><span class="tag">L-11</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ul><li>Single-point (ON/OFF) vs continuous; direct (float, sight glass) vs indirect (hydrostatic pressure).</li>
+    <li>Free-flowing solids: grain, cement, powder, pellets.</li>
+    <li>Sight glass: cheap, no power, but fragile; magnetic sight glass for hazardous/high-pressure liquids.</li>
+    <li>Float: follows surface; density independent, accurate, robust, linear.</li>
+    <li>Ultrasonic: non-contact time of flight. Displacer: buoyant force rises with immersion (Archimedes).</li></ul>
+    <div class="keyf"><span>\(V = Ah\)</span><span>\(h = P/\rho g\)</span><span>\(d = vt/2,\ h=H-d\)</span><span>\(F_B=\rho g V\)</span></div>
+    <p class="tip"><b>Slide answers:</b> 6.57 m · 2 m · 93.4 m · 6 m · 294 N · 250.15 N · 7.85 N, 0.8×10⁻³ m³</p>
+    <label class="done-box"><input type="checkbox"> Mark as revised</label>
+  </div></div></div></div>
+
+  <div class="acc rev" data-id="L12"><button type="button"><span class="t">Level sensors II<small>Radar, laser, TDR, capacitive, paddle wheel, tuning fork</small></span><span class="tag">L-12</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ul><li>Radar: microwaves (6, 10, 24, 80 GHz); higher frequency → narrower beam, smaller changes, less interference.</li>
+    <li>Laser: ToF with a laser beam (hundreds of THz). TDR: EM pulse along a probe (GHz); ultrasonic works in kHz.</li>
+    <li>Capacitive: dielectric constant change (air 1, water 80).</li>
+    <li>Paddle wheel: material covers paddle → torque rises. Tuning fork: material contact shifts resonant frequency.</li></ul>
+    <div class="keyf"><span>\(v = c/\sqrt{\varepsilon_r}\)</span><span>\(d = \frac{r(C_d-C_a)}{\varepsilon_r C_a}\)</span><span>\(\frac{h}{H}=\frac{C-C_{min}}{C_{max}-C_{min}}\)</span></div>
+    <p class="tip"><b>Slide answers:</b> radar 35 m · laser 15 m, 0 m · TDR 1.5×10⁸ m/s, 90 cm · capacitive 49 cm, 0.33 m</p>
+    <label class="done-box"><input type="checkbox"> Mark as revised</label>
+  </div></div></div></div>
+
+  <div class="acc rev" data-id="L13"><button type="button"><span class="t">Flow fundamentals<small>Laminar/turbulent, Reynolds, Bernoulli, losses</small></span><span class="tag">L-13, L-14</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ul><li>Flow = quantity/time, volumetric or mass. Applications: industry, medical (ventilators, dialysis), automotive, environment, smart IoT.</li>
+    <li>Laminar: smooth layers, parabolic profile (zero at wall, max at centre). Turbulent: mixing and swirling. Use average velocity.</li>
+    <li>Viscosity of a liquid falls as temperature rises.</li>
+    <li>Losses: friction (viscosity and walls) and fittings (valves, elbows, tees); fitting losses are usually smaller. Form drag on protruding objects.</li></ul>
+    <div class="keyf"><span>\(Q=Av\)</span><span>\(A_1V_1=A_2V_2\)</span><span>\(R=\frac{VD\rho}{\mu}\)</span><span>\(F=\rho Q\)</span><span>\(V=\sqrt{2gh}\)</span><span>\(h_L=\frac{fLV^2}{2Dg}\)</span><span>\(h_L=\frac{KV^2}{2g}\)</span><span>\(F=C_D\gamma\frac{AV^2}{2g}\)</span></div>
+    <p class="tip"><b>Slide answers:</b> 168 L/s · 12.8 m/s · R = 1440 laminar · P₂ = 27.3 kPa · 3.02 m · K<sub>tot</sub> = 16.555, 3.3 ft · 0.99 lb</p>
+    <label class="done-box"><input type="checkbox"> Mark as revised</label>
+  </div></div></div></div>
+
+  <div class="acc rev" data-id="L15"><button type="button"><span class="t">Flow measuring instruments<small>Orifice to ultrasonic</small></span><span class="tag">L-15</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ul><li>Measure flow rate, total flow or mass flow; choice depends on accuracy, range, fluid type.</li>
+    <li>Differential pressure meters: restriction → velocity up, pressure down. Orifice plate (cheap), venturi (handles suspended solids, accurate, expensive), flow nozzle (clean liquids, middle ground), Dall tube (large ΔP with low permanent loss), elbow.</li>
+    <li>Pitot static tube (impact vs static pressure). Rotameter: variable area, float balances F<sub>D</sub> + F<sub>B</sub> = W.</li>
+    <li>Vortex: shedding frequency ∝ velocity, good at high flow, unstable at low. Pressure (target) meter: strain gauge on an object, cheap, medium accuracy.</li>
+    <li>Ultrasonic transit-time: windfall effect; t<sub>delay</sub> cancels in the difference.</li></ul>
+    <div class="keyf"><span>\(Q=K\frac{\pi}{4}(\frac{d_S}{d_P})^2\sqrt{2gh}\)</span><span>\(f=\frac{S_tV}{d}\)</span><span>\(\bar v_F=\frac{\Delta t\,c_F^2}{2L_F\cos\beta_F}\)</span></div>
+    <p class="tip"><b>Slide answers:</b> 4.12 ft³/s · t<sub>down</sub> 3.37×10⁻⁴ s, t<sub>up</sub> 3.38×10⁻⁴ s · 25.98 m/s</p>
+    <label class="done-box"><input type="checkbox"> Mark as revised</label>
+  </div></div></div></div>
+
+  <div class="acc rev" data-id="L16"><button type="button"><span class="t">Temperature, position (LVDT) &amp; gas sensors<small>Scales, RTD, thermistor, diode, LVDT, MQ series</small></span><span class="tag">L-16/17</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ul><li>Scales: C, F, K (no degree sign), Rankine. Methods: expansion (mercury, bimetal), resistance (RTD, Pt100 = 100 Ω at 0 °C), thermistor (NTC/PTC), thermocouple (Seebeck, relative), pyrometer (non-contact radiation), semiconductor (V<sub>BE</sub> falls with T).</li>
+    <li>Diode sensor: easy to integrate on chip and fairly linear.</li>
+    <li>Position: absolute or incremental, linear or angular. LVDT: primary + two secondaries, E<sub>o</sub> = E<sub>1</sub> − E<sub>2</sub>; phase gives direction; high output, low hysteresis, low noise; sensitive to stray fields, vibration, temperature.</li>
+    <li>MQ-135: gas → resistance change; 5 V, 150 mA, 20 s preheat; A<sub>O</sub> analog level, D<sub>O</sub> goes high above pot threshold. MQ-2 LPG/smoke, MQ-3 alcohol, MQ-7 CO, MQ-8 H₂.</li></ul>
+    <div class="keyf"><span>\(F=\frac95C+32\)</span><span>\(R=R_0[1+\alpha\Delta T]\)</span><span>\(R=R_0e^{\beta(1/T-1/T_0)}\)</span><span>\(V_f=\frac{E_g}{q}-\frac{2kT}{q}\ln\frac CI\)</span></div>
+    <p class="tip"><b>Slide answers:</b> 204.84 Ω, 263.7 Ω; 7.323 mA, 5.688 mA, 29.7 µA/°C; 10.98 mW · 2.003 m, 35.67 Ω, 0.1067 Ω/°C · β = 3518, 527.6 kΩ, 4013 Ω · C = 4.7, 0.7776 V, 0.6465 V, 1.456 mV/°C</p>
+    <label class="done-box"><input type="checkbox"> Mark as revised</label>
+  </div></div></div></div>
+
+  <div class="acc rev" data-id="L19"><button type="button"><span class="t">Light sensors<small>Units, photocells, photodiode, phototransistor</small></span><span class="tag">L-19</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ul><li>Light: EM wave at 2.998×10⁸ m/s, visible 400–700 nm; longer = infrared, shorter = ultraviolet.</li>
+    <li>Candela: intensity in a direction. Lumen: total light output. Lux: light falling on a surface.</li>
+    <li>Photocells: photovoltaic (generates voltage, solar cell), photoconductive (resistance changes: Se, CdS, LDR), photoemissive (electrons emitted: Cs, K, bialkali; night vision, radiation detectors), semiconductor.</li>
+    <li>Photodiode: photons → e-h pairs in depletion region → field separates → photocurrent. Phototransistor: BJT with light-exposed base, amplifies I<sub>C</sub> ≈ βI<sub>ph</sub>.</li></ul>
+    <div class="keyf"><span>\(c=f\lambda\)</span><span>\(n=c/v\)</span><span>\(I=\frac{P}{4\pi R^2}\)</span><span>\(\text{dB}=10\log\frac{\Phi_1}{\Phi_2}\)</span></div>
+    <p class="tip"><b>Note:</b> the slide says ≈3 dB drop when distance doubles. The inverse-square law gives 6 dB; write the slide version but know both.</p>
+    <label class="done-box"><input type="checkbox"> Mark as revised</label>
+  </div></div></div></div>
+
+  <div class="acc rev" data-id="L20"><button type="button"><span class="t">Accelerometers &amp; gyroscope<small>Capacitive, piezoresistive, piezoelectric, MPU6050</small></span><span class="tag">L-20</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ul><li>Inertial sensor detecting tilt, vibration, impact. Based on F = ma on a proof mass.</li>
+    <li>Capacitive: fixed plate + moving plate on spring (three configurations). Piezoresistive: beams strain, four resistors in a bridge. Piezoelectric: force → charge (quartz, PZT, PVDF).</li>
+    <li>MEMS gyroscope: vibrating mass + rotation → Coriolis force → sideways displacement, sensed capacitively ∝ ω.</li>
+    <li>MPU6050 via I²C gives accel x,y,z, gyro x,y,z and temperature.</li></ul>
+    <div class="keyf"><span>\(ma=kx-b\dot x\)</span><span>\(x=\frac{ma}{k}\)</span><span>\(\omega=\frac{d\theta}{dt}\)</span></div>
+    <p class="tip"><b>Slide answer:</b> k = 47 088 N/m</p>
+    <label class="done-box"><input type="checkbox"> Mark as revised</label>
+  </div></div></div></div>
+
+  <div class="acc rev" data-id="L21"><button type="button"><span class="t">Magnetic &amp; intelligent sensors, networks<small>Hall, magnetostrictive, MR, smart sensors, Tesla</small></span><span class="tag">L-21</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="body"><div><div class="inner">
+    <ul><li>Magnetic sensors measure position, proximity, speed. Hall effect: Lorentz force → transverse voltage; used for displacement in hydraulic cylinders (dump trucks, forklifts, tractors).</li>
+    <li>Magnetostrictive: waveguide, position magnet, pickup, 1–2 µs interrogation pulse, Wiedemann effect → torsional wave, d = vt, damping element, dead zone; accurate non-contact linear position.</li>
+    <li>Magnetoresistive: resistance rises as the magnet approaches.</li>
+    <li>Intelligent sensor: conditioning, ADC, online/offline processing, communication, HMI; higher accuracy, self-learning, environmental compensation, flexibility, edge computing, PLC integration.</li>
+    <li>Tesla vision: sense → process → recognize → estimate → adapt → control; sensor fusion. Centralized vs distributed system structures.</li></ul>
+    <div class="keyf"><span>\(V_H=K_H\frac{BI}{z}\)</span><span>\(K_H=\frac{1}{nq}\)</span><span>\(d=vt\)</span></div>
+    <label class="done-box"><input type="checkbox"> Mark as revised</label>
+  </div></div></div></div>
+
+  </div>
+</section>
+</main>
+
+<footer><div class="wrap">Made from your L-1 to L-21 slides (Dr. V A Priyadarshini Chavali). Slide answers are quoted as given; always show units and formula lines in the exam. Good luck tomorrow.</div></footer>
+
+<script>
+(function(){
+  /* intro splash */
+  var splash=document.getElementById('introSplash');
+  if(splash){
+    var reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var dismissed=false;
+    function dismiss(){
+      if(dismissed) return; dismissed=true;
+      splash.classList.add('hide');
+      setTimeout(function(){splash.remove();},reduceMotion?50:550);
+    }
+    splash.addEventListener('click',dismiss);
+    setTimeout(dismiss,reduceMotion?700:1600);
+  }
+
+  /* theme toggle */
+  var root=document.documentElement;
+  try{var st=localStorage.getItem('si-theme'); if(st) root.setAttribute('data-theme',st);}catch(e){}
+  document.getElementById('themeBtn').addEventListener('click',function(){
+    var cur=root.getAttribute('data-theme');
+    if(!cur){cur=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}
+    var nx=cur==='dark'?'light':'dark';
+    root.setAttribute('data-theme',nx);
+    try{localStorage.setItem('si-theme',nx);}catch(e){}
+  });
+
+  /* oscilloscope hero */
+  var cv=document.getElementById('scope'), ctx=cv.getContext('2d');
+  var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function css(v){return getComputedStyle(root).getPropertyValue(v).trim();}
+  function size(){var r=cv.getBoundingClientRect(),d=window.devicePixelRatio||1;cv.width=r.width*d;cv.height=r.height*d;ctx.setTransform(d,0,0,d,0,0);}
+  size(); window.addEventListener('resize',size);
+  var t0=performance.now();
+  function frame(now){
+    var t=(now-t0)/1000, W=cv.clientWidth, H=cv.clientHeight, mid=H/2, A=H*0.3;
+    ctx.clearRect(0,0,W,H);
+    var bandL=W*0.40, bandR=W*0.60;
+    ctx.fillStyle=css('--paper2'); ctx.fillRect(bandL,0,bandR-bandL,H);
+    ctx.strokeStyle=css('--line'); ctx.lineWidth=1;
+    for(var gx=0;gx<W;gx+=W/16){ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,H);ctx.stroke();}
+    for(var gy=0;gy<=H;gy+=H/6){ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(W,gy);ctx.stroke();}
+    ctx.lineWidth=2.4; ctx.lineJoin='round';
+    // noisy
+    ctx.strokeStyle=css('--muted'); ctx.beginPath();
+    for(var x=0;x<=bandR;x+=2){
+      var ph=x/W*Math.PI*6 - t*2.2;
+      var blend=Math.min(1,Math.max(0,(x-bandL)/(bandR-bandL)));
+      var noise=(Math.sin(x*0.9+t*37)*0.35+Math.sin(x*0.37-t*23)*0.3+Math.sin(x*2.1+t*51)*0.2)*A*(1-blend)*0.6;
+      var y=mid-Math.sin(ph)*A*(0.55+0.45*blend)-noise;
+      x?ctx.lineTo(x,y):ctx.moveTo(x,y);
+    }
+    ctx.stroke();
+    // clean
+    ctx.strokeStyle=css('--pcb'); ctx.lineWidth=3; ctx.shadowColor=css('--glow'); ctx.shadowBlur=10; ctx.beginPath();
+    for(var x2=bandR;x2<=W;x2+=2){var p2=x2/W*Math.PI*6 - t*2.2; var y2=mid-Math.sin(p2)*A; x2===bandR?ctx.moveTo(x2,y2):ctx.lineTo(x2,y2);}
+    ctx.stroke(); ctx.shadowBlur=0;
+    // sweep dot
+    var sx=(t*120)%W, sp=sx/W*Math.PI*6 - t*2.2;
+    ctx.fillStyle=css('--leaf'); ctx.beginPath(); ctx.arc(sx, sx>bandR?mid-Math.sin(sp)*A:mid, 4,0,7); ctx.fill();
+    if(!reduce) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  /* tabs */
+  var tabs=[].slice.call(document.querySelectorAll('.tab')), pill=document.getElementById('pill');
+  function movePill(b){pill.style.left=b.offsetLeft+'px';pill.style.width=b.offsetWidth+'px';}
+  function show(b){
+    tabs.forEach(function(x){x.setAttribute('aria-selected',x===b?'true':'false');});
+    document.querySelectorAll('section.panel').forEach(function(p){p.classList.toggle('show',p.id===b.dataset.panel);});
+    movePill(b);
+    var p=document.getElementById(b.dataset.panel);
+    if(window.MathJax && MathJax.typesetPromise){MathJax.typesetPromise([p]).catch(function(){});}
+  }
+  tabs.forEach(function(b){b.addEventListener('click',function(){show(b); var n=document.querySelector('nav.tabs'); if(n.getBoundingClientRect().top<=1) window.scrollTo({top:n.offsetTop,behavior:'smooth'});});});
+  window.addEventListener('resize',function(){movePill(document.querySelector('.tab[aria-selected="true"]'));});
+  requestAnimationFrame(function(){movePill(tabs[0]);});
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(function(){movePill(document.querySelector('.tab[aria-selected="true"]'));});
+
+  /* formula filter */
+  var chips=[].slice.call(document.querySelectorAll('.chip')), cur='all', q='';
+  function applyF(){
+    document.querySelectorAll('.fgroup').forEach(function(g){
+      var gm = cur==='all' || g.dataset.g===cur, any=false;
+      g.querySelectorAll('.frow').forEach(function(r){
+        var hit = gm && (!q || r.textContent.toLowerCase().indexOf(q)>-1 || g.querySelector('h3').textContent.toLowerCase().indexOf(q)>-1);
+        r.classList.toggle('hide',!hit); if(hit) any=true;
+      });
+      g.classList.toggle('hide',!any);
+    });
+  }
+  chips.forEach(function(c){c.addEventListener('click',function(){cur=c.dataset.f;chips.forEach(function(x){x.setAttribute('aria-pressed',x===c?'true':'false');});applyF();});});
+  document.getElementById('fsearch').addEventListener('input',function(e){q=e.target.value.trim().toLowerCase();applyF();});
+
+  /* accordions */
+  document.querySelectorAll('.acc > button').forEach(function(b){
+    b.setAttribute('aria-expanded','false');
+    b.addEventListener('click',function(){var a=b.parentElement;var o=a.classList.toggle('open');b.setAttribute('aria-expanded',o?'true':'false');});
+  });
+
+  /* solutions */
+  document.querySelectorAll('.solbtn').forEach(function(b){
+    b.addEventListener('click',function(){var s=b.nextElementSibling;var o=s.classList.toggle('open');var w=b.classList.contains('tq')?'answer':'solution';b.textContent=(o?'Hide ':'Show ')+w;if(o&&b.classList.contains('tq')){b.dataset.seen='1';var n=document.querySelectorAll('.solbtn.tq[data-seen]').length;document.getElementById('tqcount').textContent=n+'/25 opened';document.getElementById('tqbar').style.width=(n/25*100)+'%';}});
+  });
+
+  /* paper sets */
+  var sets=[].slice.call(document.querySelectorAll('.setbtn'));
+  sets.forEach(function(b){b.addEventListener('click',function(){
+    sets.forEach(function(x){x.setAttribute('aria-pressed',x===b?'true':'false');});
+    document.querySelectorAll('.paperset').forEach(function(p){p.classList.toggle('show',p.dataset.set===b.dataset.set);});
+  });});
+
+  /* timer */
+  var total=3600,left=total,iv=null,clock=document.getElementById('clock'),bar=document.getElementById('tbar'),tb=document.getElementById('timer'),sb=document.getElementById('tstart');
+  function draw(){var m=Math.floor(left/60),s=left%60;clock.textContent=(m<10?'0':'')+m+':'+(s<10?'0':'')+s;bar.style.transform='scaleX('+(left/total)+')';}
+  sb.addEventListener('click',function(){
+    if(iv){clearInterval(iv);iv=null;sb.textContent='Resume';return;}
+    sb.textContent='Pause';
+    iv=setInterval(function(){left--;draw();if(left<=0){clearInterval(iv);iv=null;sb.textContent='Start';tb.classList.add('done');clock.textContent='Time up';}},1000);
+  });
+  document.getElementById('treset').addEventListener('click',function(){clearInterval(iv);iv=null;left=total;sb.textContent='Start';tb.classList.remove('done');draw();});
+  draw();
+
+  /* revision progress */
+  var revs=[].slice.call(document.querySelectorAll('.acc.rev')), saved={};
+  try{saved=JSON.parse(localStorage.getItem('si-revised')||'{}')||{};}catch(e){saved={};}
+  function prog(){var n=revs.filter(function(r){return r.classList.contains('revised');}).length;document.getElementById('rcount').textContent=n+'/'+revs.length;document.getElementById('rbar').style.width=(n/revs.length*100)+'%';}
+  revs.forEach(function(r){
+    var cb=r.querySelector('input[type=checkbox]');
+    if(saved[r.dataset.id]){cb.checked=true;r.classList.add('revised');}
+    cb.addEventListener('change',function(){r.classList.toggle('revised',cb.checked);saved[r.dataset.id]=cb.checked;try{localStorage.setItem('si-revised',JSON.stringify(saved));}catch(e){}prog();});
+  });
+  prog();
+})();
+</script>
+</body>
+</html>
